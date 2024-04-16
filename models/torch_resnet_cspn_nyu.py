@@ -316,7 +316,9 @@ class ResNet(nn.Module):
         self.gud_up_proj_layer3 = self._make_gud_up_conv_layer(Gudi_UpProj_Block_Cat, 512, 256, 57, 76)
         self.gud_up_proj_layer4 = self._make_gud_up_conv_layer(Gudi_UpProj_Block_Cat, 256, 64, 114, 152)
         self.gud_up_proj_layer5 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 64, 1, 228, 304)
+        # self.gud_up_proj_layer5 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 64, 1, 300, 1000)
         self.gud_up_proj_layer6 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 64, 8, 228, 304)
+        # self.gud_up_proj_layer6 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 64, 8, 300, 1000)
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
@@ -348,8 +350,11 @@ class ResNet(nn.Module):
 
     def forward(self, x):
         [batch_size, channel, height, width] = x.size()
+        # print(x.size())
         sparse_depth = x.narrow(1,3,1).clone()
+        # print(sparse_depth.size())
         x = self.conv1_1(x)
+        # print(x.size())
         skip4 = x
 
         x = self.bn1(x)

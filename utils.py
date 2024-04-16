@@ -179,7 +179,7 @@ def un_normalize(tensor):
         t.mul_(s).add_(m)
     return tensor
 
-def save_eval_img(data_set, model_dir, index, input_rgbd, input_rgb, gt_depth, pred_depth):
+def save_eval_img(data_set, model_dir, index, input_rgbd, input_rgb, gt_depth, pred_depth,old_depth):
     img_save_folder = os.path.join(model_dir, 'eval_result')
     if not os.path.isdir(img_save_folder):
         os.makedirs(img_save_folder, 0o777)
@@ -189,6 +189,7 @@ def save_eval_img(data_set, model_dir, index, input_rgbd, input_rgb, gt_depth, p
     save_name_pred = os.path.join(img_save_folder, "%05d_pred.png" % (index))
     save_name_sparse_point = os.path.join(img_save_folder, "%05d_sparse_point.png" % (index))
     save_name_sparse_mask = os.path.join(img_save_folder, "%05d_sparse_mask.png" % (index))
+    save_name_old_depth=os.path.join(img_save_folder, "%05d_old_depth.png" % (index))
     save_rgb = transforms.ToPILImage()(torch.squeeze(input_rgb, 0))
     save_gt = None
     save_pred = None
@@ -204,9 +205,13 @@ def save_eval_img(data_set, model_dir, index, input_rgbd, input_rgb, gt_depth, p
     elif data_set == 'nyudepth':
         save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*25.5, 0))
         save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*25.5, 0))
+        # save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*1.0, 0))
+        # save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*1.0, 0))
+        save_depth=data_transform.ToPILImage()(torch.squeeze(old_depth*1.0, 0))
         save_rgb.save(save_name_rgb)
         save_gt.save(save_name_gt)
         save_pred.save(save_name_pred)
+        save_depth.save(save_name_old_depth)
 
 def test_eval_error():
     gt_depth = torch.abs(torch.randn(1,3,4))

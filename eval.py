@@ -137,7 +137,7 @@ def val(epoch):
                  'DELTA1.02':0, 'DELTA1.05':0, 'DELTA1.10':0, \
                  'DELTA1.25':0, 'DELTA1.25^2':0, 'DELTA1.25^3':0}
     for batch_idx, sample in enumerate(valloader):
-        [inputs, targets, raw_rgb] = [sample['rgbd'] , sample['depth'], sample['raw_rgb']]
+        [inputs, targets, raw_rgb, old_depth] = [sample['rgbd'] , sample['depth'], sample['raw_rgb'],sample['old_depth']]
         if use_cuda:
             inputs, targets = inputs.cuda(), targets.cuda()
         inputs, targets = Variable(inputs, volatile=True), Variable(targets)
@@ -158,7 +158,7 @@ def val(epoch):
                           epoch, batch_idx,
                           loss, error_result, error_avg)
         utils.save_eval_img(args.data_set, args.best_model_dir, batch_idx,
-                            inputs.data.cpu(), raw_rgb, targets, outputs)
+                            inputs.data.cpu(), raw_rgb, targets, outputs,old_depth)
 
     utils.print_single_error(epoch, batch_idx, loss, error_avg)
 

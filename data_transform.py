@@ -491,3 +491,17 @@ class Rotation(object):
 
     def __repr__(self):
         return self.__class__.__name__ + '(degrees={0})'.format(self.degrees)
+
+def normalize_depth(x):
+    return x / 65535.0
+class ToTensorNormalize(torch.nn.Module):
+    """Convert a PIL Image or numpy.ndarray to tensor and normalize it."""
+    def __init__(self):
+        super(ToTensorNormalize, self).__init__()
+    
+    def forward(self, pic):
+        # Convert to tensor
+        tensor = transforms.functional.to_tensor(pic)
+        # Normalize
+        tensor = normalize_depth(tensor)
+        return tensor

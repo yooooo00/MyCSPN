@@ -12,7 +12,7 @@ batch_size_eval=1
 #cspn_norm_type="8sum_abs"
 
 # for non-positive affinity
-best_model_dir="output/nyu_pretrain_cspn_1_net_cp500_bs8_adlr_ep40_8norm"
+best_model_dir="output/test"
 cspn_norm_type="8sum"
 
 python eval.py \

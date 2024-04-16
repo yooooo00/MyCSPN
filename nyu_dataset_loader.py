@@ -95,9 +95,12 @@ class NyuDepthDataset(Dataset):
             gt_name=os.path.join(self.root_dir,
                         os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth",
                                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
-            gt_image=Image.open(gt_name).convert('L')
-            plt.imshow(gt_image)
-            plt.show()
+            gt_image=Image.open(gt_name).convert('I')
+            # from imagetest import imginfo
+            # imginfo(depth_image)
+            # imginfo(gt_image)
+            # plt.imshow(gt_image)
+            # plt.show()
             # plt.imshow(depth_name)
             # plt.show()
             # plt.imshow(rgb_name)
@@ -115,16 +118,30 @@ class NyuDepthDataset(Dataset):
                                            transforms.ColorJitter(brightness = 0.4, contrast = 0.4, saturation = 0.4),
 #                                           data_transform.Lighting(0.1, imagenet_eigval, imagenet_eigvec)])
                                            transforms.CenterCrop((228, 304)),
+                                            # transforms.CenterCrop((300 ,1000)),
                                            transforms.ToTensor(),
                                            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-                                           transforms.ToPILImage()])
+                                           transforms.ToPILImage()
+                                           ])
 
             tDepth = data_transform.Compose([transforms.Resize(s),
                                              data_transform.Rotation(degree),
-                                             transforms.CenterCrop((228, 304))])
+                                             transforms.CenterCrop((228, 304))
+                                            # transforms.CenterCrop((300 ,1000))
+                                             ])
+            gttDepth = transforms.Compose([
+                # transforms.ToPILImage(),
+                data_transform.ToTensorNormalize(),
+                transforms.ToPILImage(),
+                transforms.Resize(s),
+                data_transform.Rotation(degree),
+                transforms.CenterCrop((228, 304))
+                # transforms.CenterCrop((300 ,1000))
+                # transforms.ToPILImage()
+            ])            
             rgb_image = tRgb(rgb_image)
             depth_image = tDepth(depth_image)
-            gt_image=tDepth(gt_image)
+            gt_image=gttDepth(gt_image)
             if np.random.uniform()<0.5:
                 rgb_image = rgb_image.transpose(Image.FLIP_LEFT_RIGHT)
                 depth_image = depth_image.transpose(Image.FLIP_LEFT_RIGHT)
@@ -153,9 +170,18 @@ class NyuDepthDataset(Dataset):
 
             tDepth = data_transform.Compose([transforms.Resize(240),
                                              transforms.CenterCrop((228, 304))])            
+            gttDepth = transforms.Compose([
+                # transforms.ToPILImage(),
+                data_transform.ToTensorNormalize(),
+                transforms.ToPILImage(),
+                transforms.Resize(s),
+                data_transform.Rotation(degree),
+                transforms.CenterCrop((228, 304))
+                # transforms.ToPILImage()
+            ]) 
             rgb_image = tRgb(rgb_image)
             depth_image = tDepth(depth_image)
-            gt_image = tDepth(gt_image)
+            gt_image = gttDepth(gt_image)
             rgb_image = transforms.ToTensor()(rgb_image)
             if self.input_format == 'img':
                 depth_image = transforms.ToTensor()(depth_image)

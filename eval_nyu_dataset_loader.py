@@ -86,7 +86,7 @@ class NyuDepthDataset(Dataset):
             gt_name=os.path.join(self.root_dir,
                         os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth",
                                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
-            gt_image=Image.open(gt_name).convert('L')
+            gt_image=Image.open(gt_name).convert('I')
         else:
             print('error: the input format is not supported now!')
             return None
@@ -132,11 +132,21 @@ class NyuDepthDataset(Dataset):
 
             tDepth = data_transform.Compose([transforms.Resize(240),
                                              transforms.CenterCrop((228, 304))])
+            gttDepth = transforms.Compose([
+                # transforms.ToPILImage(),
+                data_transform.ToTensorNormalize(),
+                transforms.ToPILImage(),
+                # transforms.Resize(s),
+                # data_transform.Rotation(degree),
+                transforms.CenterCrop((228, 304))
+                # transforms.CenterCrop((300 ,1000))
+                # transforms.ToPILImage()
+            ])           
 
             rgb_raw = tDepth(rgb_image)
             rgb_image = tRgb(rgb_image)
             depth_image = tDepth(depth_image)
-            gt_image = tDepth(gt_image)
+            gt_image = gttDepth(gt_image)
             rgb_image = transforms.ToTensor()(rgb_image)
             rgb_raw = transforms.ToTensor()(rgb_raw)
             if self.input_format == 'img':
@@ -150,18 +160,19 @@ class NyuDepthDataset(Dataset):
             rgbd_image = torch.cat((rgb_image, sparse_image), 0)
 
             # sample = {'rgbd': rgbd_image, 'depth': depth_image, 'raw_rgb': rgb_raw }
-            sample = {'rgbd': rgbd_image, 'depth': gt_image, 'raw_rgb': rgb_raw }
+            sample = {'rgbd': rgbd_image, 'depth': gt_image, 'raw_rgb': rgb_raw ,'old_depth':depth_image}
 
         return sample
 
     def createSparseDepthImage(self, depth_image, n_sample):
-        random_mask = torch.zeros(1, depth_image.size(1), depth_image.size(2))
-        n_pixels = depth_image.size(1) * depth_image.size(2)
-        n_valid_pixels = torch.sum(depth_image>0.0001)
-        perc_sample = n_sample/n_pixels
-        random_mask = torch.bernoulli(torch.ones_like(random_mask)*perc_sample)
-        sparse_depth = torch.mul(depth_image, random_mask)
-        return sparse_depth
+        # random_mask = torch.zeros(1, depth_image.size(1), depth_image.size(2))
+        # n_pixels = depth_image.size(1) * depth_image.size(2)
+        # n_valid_pixels = torch.sum(depth_image>0.0001)
+        # perc_sample = n_sample/n_pixels
+        # random_mask = torch.bernoulli(torch.ones_like(random_mask)*perc_sample)
+        # sparse_depth = torch.mul(depth_image, random_mask)
+        # return sparse_depth
+        return depth_image
 
     def load_h5(self, h5_filename):
         f = h5py.File(h5_filename, 'r')

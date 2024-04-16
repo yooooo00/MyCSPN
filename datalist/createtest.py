@@ -35,11 +35,11 @@ if os.path.exists("/content/drive"):
 count=0
 failed=0
 failed2=0
-with open('/home/ewing/projects/CSPN/cspn_pytorch/datalist/png_train_test.csv','w') as file:
+with open('/home/ewing/projects/MyCSPN/datalist/png_train_test.csv','w') as file:
     file.write("Name\n")
     namelist=os.listdir('/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth')
     # random.shuffle(namelist)
-    for name in namelist:
+    for name in sorted(namelist):
         
         if os.path.exists(os.path.join('/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/output_CREStereo_full',name)):
             name2=name.split('.')[0]+'_depth.png'
@@ -51,5 +51,5 @@ with open('/home/ewing/projects/CSPN/cspn_pytorch/datalist/png_train_test.csv','
                 
             else:failed2+=1
         else:failed+=1
-        if count>=10:break
+        # if count>=10:break
         print(f"\r{count}/{failed}/{failed2}",end='        ')
