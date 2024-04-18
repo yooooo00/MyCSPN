@@ -35,7 +35,7 @@ if os.path.exists("/content/drive"):
 count=0
 failed=0
 failed2=0
-with open('/home/ewing/projects/MyCSPN/datalist/png_train_test.csv','w') as file:
+with open('/home/ewing/projects/MyCSPN/datalist/png_val_test.csv','w') as file:
     file.write("Name\n")
     namelist=os.listdir('/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth')
     # random.shuffle(namelist)
@@ -51,5 +51,5 @@ with open('/home/ewing/projects/MyCSPN/datalist/png_train_test.csv','w') as file
                 
             else:failed2+=1
         else:failed+=1
-        # if count>=10:break
+        if count>=100:break
         print(f"\r{count}/{failed}/{failed2}",end='        ')

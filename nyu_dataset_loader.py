@@ -114,7 +114,7 @@ class NyuDepthDataset(Dataset):
         degree = np.random.uniform(-5.0, 5.0)
         if self.split == 'train':
             tRgb = data_transform.Compose([transforms.Resize(s),
-                                           data_transform.Rotation(degree),
+                                        #    data_transform.Rotation(degree),
                                            transforms.ColorJitter(brightness = 0.4, contrast = 0.4, saturation = 0.4),
 #                                           data_transform.Lighting(0.1, imagenet_eigval, imagenet_eigvec)])
                                            transforms.CenterCrop((228, 304)),
@@ -125,7 +125,7 @@ class NyuDepthDataset(Dataset):
                                            ])
 
             tDepth = data_transform.Compose([transforms.Resize(s),
-                                             data_transform.Rotation(degree),
+                                            #  data_transform.Rotation(degree),
                                              transforms.CenterCrop((228, 304))
                                             # transforms.CenterCrop((300 ,1000))
                                              ])
@@ -134,7 +134,7 @@ class NyuDepthDataset(Dataset):
                 data_transform.ToTensorNormalize(),
                 transforms.ToPILImage(),
                 transforms.Resize(s),
-                data_transform.Rotation(degree),
+                # data_transform.Rotation(degree),
                 transforms.CenterCrop((228, 304))
                 # transforms.CenterCrop((300 ,1000))
                 # transforms.ToPILImage()

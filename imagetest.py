@@ -41,3 +41,17 @@ def imginfo(image):
     plt.show()
 # for pixel_value in np.nditer(image_data):
 #     print(f"\r{pixel_value}",end='          ')
+
+def changeimage(image_path,save_path=''):
+    image=Image.open(image_path).convert('I')
+    img_uint16 = np.array(image)  # 转换为NumPy数组
+    # 转换为uint8
+    img_uint8 = (img_uint16 >> 8).astype(np.uint8)  # 右移8位等同于除以256
+    # 如果需要，转换回PIL图像
+    img_uint8 = Image.fromarray(img_uint8)
+    imginfo(img_uint8)
+    
+# image = Image.open("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/output_CREStereo_full/0000000005.png")
+# image = Image.open("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth/0000000005.png")
+# imginfo(image)
+changeimage("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth/0000000005.png")
