@@ -220,7 +220,7 @@ def train(epoch):
                                     error_result,
                                     total_step_train,
                                     args.batch_size_train)
-        if batch_idx % 500 == 0:
+        if batch_idx % 2000 == 0:
             utils.print_error('training_result: step(average)',
                               epoch,
                               batch_idx,

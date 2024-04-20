@@ -66,8 +66,10 @@ class NyuDepthDataset(Dataset):
             depth_image = Image.fromarray(depth_h5.astype('float32'), mode='F')
         elif self.input_format == 'png':
             rgb_name = os.path.join(self.root_dir,
-                    os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/Depth-Anything_image_02",
-                                 self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
+                    # os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/Depth-Anything_image_02",
+                    os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/data/",
+                                #  self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
+                                 self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             # rgb_name = os.path.join(self.root_dir,
             #         os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_center/image_02",
             #                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))

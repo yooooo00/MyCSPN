@@ -12,7 +12,7 @@ batch_size_eval=1
 #cspn_norm_type="8sum_abs"
 
 # for non-positive affinity
-best_model_dir="output/test"
+best_model_dir="output/test0420"
 cspn_norm_type="8sum"
 
 python eval.py \

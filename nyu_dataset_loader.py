@@ -76,7 +76,9 @@ class NyuDepthDataset(Dataset):
         elif self.input_format == 'png':
             rgb_name = os.path.join(self.root_dir,
                     os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/Depth-Anything_image_02",
+                    # os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/data/",
                                  self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
+                                #  self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             # rgb_name = os.path.join(self.root_dir,
             #         os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_center/image_02",
             #                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
@@ -111,7 +113,7 @@ class NyuDepthDataset(Dataset):
         
         _s = np.random.uniform(1.0, 1.5)
         s = int(240*_s)
-        degree = np.random.uniform(-5.0, 5.0)
+        # degree = np.random.uniform(-5.0, 5.0)
         if self.split == 'train':
             tRgb = data_transform.Compose([transforms.Resize(s),
                                         #    data_transform.Rotation(degree),
@@ -174,8 +176,8 @@ class NyuDepthDataset(Dataset):
                 # transforms.ToPILImage(),
                 data_transform.ToTensorNormalize(),
                 transforms.ToPILImage(),
-                transforms.Resize(s),
-                data_transform.Rotation(degree),
+                # transforms.Resize(s),
+                # data_transform.Rotation(degree),
                 transforms.CenterCrop((228, 304))
                 # transforms.ToPILImage()
             ]) 
