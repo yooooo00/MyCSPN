@@ -107,26 +107,26 @@ if args.data_set=='nyudepth':
                                             split = 'val',
                                             n_sample = args.n_sample,
                                             input_format='png')
-elif args.data_set =='kitti':
-    import kitti_dataset_loader as dataset_loader
-    trainset = dataset_loader.KittiDataset(csv_file=args.train_list,
-                                           root_dir='.',
-                                           split = 'train',
-                                           n_sample = args.n_sample,
-                                           input_format='hdf5')
-    valset = dataset_loader.KittiDataset(csv_file=args.eval_list,
-                                         root_dir='.',
-                                         split = 'val',
-                                         n_sample = args.n_sample,
-                                         input_format='hdf5')
-
-else:
-    print("==> input unknow dataset..")
+# elif args.data_set =='kitti':
+#     import kitti_dataset_loader as dataset_loader
+#     trainset = dataset_loader.KittiDataset(csv_file=args.train_list,
+#                                            root_dir='.',
+#                                            split = 'train',
+#                                            n_sample = args.n_sample,
+#                                            input_format='hdf5')
+#     valset = dataset_loader.KittiDataset(csv_file=args.eval_list,
+#                                          root_dir='.',
+#                                          split = 'val',
+#                                          n_sample = args.n_sample,
+#                                          input_format='hdf5')
+# 
+# else:
+#     print("==> input unknow dataset..")
 
 trainloader = torch.utils.data.DataLoader(trainset,
                                           batch_size=args.batch_size_train,
                                           shuffle=True,
-                                          num_workers=2,
+                                          num_workers=0,
                                           pin_memory=True,
                                           drop_last=True)
 
@@ -134,16 +134,16 @@ if args.data_set=='nyudepth':
     valloader = torch.utils.data.DataLoader(valset,
                                             batch_size=args.batch_size_eval,
                                             shuffle=False,
-                                            num_workers=2,
+                                            num_workers=0,
                                             pin_memory=True,
                                             drop_last=True)
-elif args.data_set == 'kitti':
-    valloader = torch.utils.data.DataLoader(valset,
-                                            batch_size=args.batch_size_eval,
-                                            shuffle=True,
-                                            num_workers=2,
-                                            pin_memory=True,
-                                            drop_last=True)
+# elif args.data_set == 'kitti':
+#     valloader = torch.utils.data.DataLoader(valset,
+#                                             batch_size=args.batch_size_eval,
+#                                             shuffle=True,
+#                                             num_workers=2,
+#                                             pin_memory=True,
+#                                             drop_last=True)
 # Model
 
 print('==> Prepare results folder and files...')
@@ -153,11 +153,11 @@ print('==> Building model..')
 if args.data_set == 'nyudepth':
     net = model.resnet50(pretrained = args.pretrain,
                          cspn_config=cspn_config)
-elif args.data_set == 'kitti':
-    net = model.resnet18(pretrained = args.pretrain,
-                         cspn_config=cspn_config)
-else:
-    print("==> input unknow dataset..")
+# elif args.data_set == 'kitti':
+#     net = model.resnet18(pretrained = args.pretrain,
+#                          cspn_config=cspn_config)
+# else:
+#     print("==> input unknow dataset..")
 
 if args.resume:
     # Load best model checkpoint.
@@ -220,14 +220,14 @@ def train(epoch):
                                     error_result,
                                     total_step_train,
                                     args.batch_size_train)
-        if batch_idx % 2000 == 0:
-            utils.print_error('training_result: step(average)',
-                              epoch,
-                              batch_idx,
-                              loss,
-                              error_result,
-                              error_avg,
-                              print_out=True)
+        # if batch_idx== 0:
+        #     utils.print_error('training_result: step(average)',
+        #                       epoch,
+        #                       batch_idx,
+        #                       loss,
+        #                       error_result,
+        #                       error_avg,
+        #                       print_out=True)
 
     error_avg = utils.avg_error(error_sum_train,
                                 error_result,
@@ -239,7 +239,8 @@ def train(epoch):
 
     tmp_name = "epoch_%02d.pth" % (epoch)
     save_name = os.path.join(args.save_dir, tmp_name)
-    torch.save(net.state_dict(), save_name)
+    if epoch%10 == 0:
+        torch.save(net.state_dict(), save_name)
 
 
 def val(epoch):

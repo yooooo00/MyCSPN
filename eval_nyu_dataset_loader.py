@@ -67,9 +67,10 @@ class NyuDepthDataset(Dataset):
         elif self.input_format == 'png':
             rgb_name = os.path.join(self.root_dir,
                     # os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/Depth-Anything_image_02",
-                    os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/data/",
-                                #  self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
-                                 self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
+                    # os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/data/",
+                    os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\Depth-Anything_image_02",
+                                 self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
+                                #  self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             # rgb_name = os.path.join(self.root_dir,
             #         os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_center/image_02",
             #                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
@@ -79,14 +80,20 @@ class NyuDepthDataset(Dataset):
             # depth_name = os.path.join(self.root_dir,
             #             os.path.join("/content/drive/MyDrive/Colab Notebooks/data/kitti/2011_10_03_drive_0027_sync/output_CREStereo",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
+            # depth_name = os.path.join(self.root_dir,
+            #             os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/output_CREStereo_full",
+            #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             depth_name = os.path.join(self.root_dir,
-                        os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/output_CREStereo_full",
+                        os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\output_CREStereo_full",
                                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             with open(depth_name, 'rb') as fDepth:
                 depth_image = Image.open(depth_name).convert('L')
 
+            # gt_name=os.path.join(self.root_dir,
+            #             os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth",
+            #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             gt_name=os.path.join(self.root_dir,
-                        os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth",
+                        os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint16_4",
                                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             gt_image=Image.open(gt_name).convert('I')
         else:

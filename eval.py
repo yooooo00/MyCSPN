@@ -55,11 +55,11 @@ if args.model == 'cspn_unet':
     if args.data_set=='nyudepth':
         print("==> evaluating model with cspn and unet on nyudepth")
         import torch_resnet_cspn_nyu as model
-    elif args.data_set =='kitti':
-        print("==> evaluating model with cspn and unet on kitti")
-        import torch_resnet_cspn_kitti as model
-else:
-    import torch_resnet as model
+#     elif args.data_set =='kitti':
+#         print("==> evaluating model with cspn and unet on kitti")
+#         import torch_resnet_cspn_kitti as model
+# else:
+#     import torch_resnet as model
 
 use_cuda = torch.cuda.is_available()
 
@@ -77,20 +77,20 @@ if args.data_set=='nyudepth':
                                             split = 'val',
                                             n_sample = args.n_sample,
                                             input_format='png')
-elif args.data_set =='kitti':
-    import eval_kitti_dataset_loader as dataset_loader
-    valset = dataset_loader.KittiDataset(csv_file=args.eval_list,
-                                         root_dir='.',
-                                         split = 'val',
-                                         n_sample = args.n_sample,
-                                         input_format='hdf5')
-else:
-    print("==> input unknow dataset..")
+# elif args.data_set =='kitti':
+#     import eval_kitti_dataset_loader as dataset_loader
+#     valset = dataset_loader.KittiDataset(csv_file=args.eval_list,
+#                                          root_dir='.',
+#                                          split = 'val',
+#                                          n_sample = args.n_sample,
+#                                          input_format='hdf5')
+# else:
+#     print("==> input unknow dataset..")
 
 valloader = torch.utils.data.DataLoader(valset,
                                         batch_size=args.batch_size_eval,
                                         shuffle=False,
-                                        num_workers=4,
+                                        num_workers=0,
                                         pin_memory=True,
                                         drop_last=False)
 # Model
@@ -98,10 +98,10 @@ print('==> Building model..')
 
 if args.data_set == 'nyudepth':
     net = model.resnet50(cspn_config=cspn_config)
-elif args.data_set == 'kitti':
-    net = model.resnet18(cspn_config=cspn_config)
-else:
-    print("==> input unknow dataset..")
+# elif args.data_set == 'kitti':
+#     net = model.resnet18(cspn_config=cspn_config)
+# else:
+#     print("==> input unknow dataset..")
 
 if True:
     # Load best model checkpoint.

@@ -44,14 +44,33 @@ def imginfo(image):
 
 def changeimage(image_path,save_path=''):
     image=Image.open(image_path).convert('I')
+    # img_uint16_cv = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+    # 将16位图像转换为8位，因为OpenCV的色彩映射通常在8位图像上操作
+    # img_uint8_cv = cv2.convertScaleAbs(img_uint16_cv, alpha=(255.0/65535.0))
+
+    # 应用色彩映射
+    # color_mapped_img = cv2.applyColorMap(img_uint8_cv, cv2.COLORMAP_MAGMA)
+    # cv2.imwrite(save_path, color_mapped_img)
     img_uint16 = np.array(image)  # 转换为NumPy数组
-    # 转换为uint8
-    img_uint8 = (img_uint16 >> 8).astype(np.uint8)  # 右移8位等同于除以256
-    # 如果需要，转换回PIL图像
-    img_uint8 = Image.fromarray(img_uint8)
-    imginfo(img_uint8)
+    # imginfo(image)
+    img_uint16=np.where(img_uint16 == 0, 0, 2**16-1 - img_uint16)
+    img_uint16=((img_uint16/4096)**4).astype(np.uint16)
+    img_uint16=Image.fromarray(img_uint16)
+    # imginfo(img_uint16)
+    
+    img_uint16.save(save_path)
+    # img_uint8 = (img_uint16//256).astype(np.uint8)  # 右移8位等同于除以256 # 转换为uint8
+    # img_uint8=np.where(img_uint8 == 0, 0, 65535 - img_uint8)
+    # img_uint8=65535-img_uint8   
+    # img_uint8 = Image.fromarray(img_uint8)# 如果需要，转换回PIL图像
+    # img_uint8.save(save_path)
+    # imginfo(img_uint8)
     
 # image = Image.open("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/output_CREStereo_full/0000000005.png")
 # image = Image.open("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth/0000000005.png")
 # imginfo(image)
-changeimage("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth/0000000005.png")
+# changeimage("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth\\0000000005.png","D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint8\\4.png")
+old_path="D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth"
+new_path="D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint16_4"
+for oldfile in os.listdir(old_path):
+    changeimage(os.path.join(old_path,oldfile),os.path.join(new_path,oldfile))

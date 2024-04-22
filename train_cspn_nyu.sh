@@ -9,7 +9,7 @@ eval_list="datalist/png_val_test.csv"
 model="cspn_unet"
 
 batch_size_train=1
-num_epoch_train=100
+num_epoch_train=50
 batch_size_eval=1
 # model_name=nyu_pretrain_cspn_1_net_cp500_bs8_adlr_ep40_8norm
 model_name=test0420
@@ -29,3 +29,5 @@ python train.py \
 --best_model_dir $best_model_dir \
 -n \
 -p \
+
+# python train.py --train_list "datalist/png_train_test.csv" --eval_list "datalist/png_val_test.csv" --model "cspn_unet" --batch_size_train 1 --num_epoch 40 --save_dir "output/test0420" --best_model_dir "output/test0420" -n -p
