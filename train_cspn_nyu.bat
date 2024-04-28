@@ -8,10 +8,10 @@ set train_list=datalist\png_train_test.csv
 set eval_list=datalist\png_val_test.csv
 set model=cspn_unet
 
-set batch_size_train=2
+set batch_size_train=1
 set num_epoch_train=100
 set batch_size_eval=1
-set model_name=test0422_step24_gt4
+set model_name=sgd0427_step24_gt8_nopretrain_fullresnet50_grey
 set save_dir=output\%model_name%
 set best_model_dir=output\%model_name%
 
@@ -29,7 +29,6 @@ python train.py ^
 --save_dir %save_dir% ^
 --best_model_dir %best_model_dir% ^
 --cspn_step %cspn_step% ^
--n ^
--r ^
--p
+-n
+
 

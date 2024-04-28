@@ -284,7 +284,7 @@ class ResNet(nn.Module):
         print(cspn_config_default)
 
         super(ResNet, self).__init__()
-        self.conv1_1 = nn.Conv2d(4, 64, kernel_size=7, stride=2, padding=3,
+        self.conv1_1 = nn.Conv2d(2, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
@@ -351,7 +351,7 @@ class ResNet(nn.Module):
     def forward(self, x):
         [batch_size, channel, height, width] = x.size()
         # print("Input shape:", x.size())  # 打印输入形状
-        sparse_depth = x.narrow(1,3,1).clone()
+        sparse_depth = x.narrow(1,1,1).clone()
         # print("Sparse depth shape:", sparse_depth.size())  # 打印稀疏深度图形状
         x = self.conv1_1(x)
         skip4 = x
@@ -361,23 +361,23 @@ class ResNet(nn.Module):
         # print("After bn1 shape:", x.size())
         x = self.relu(x)
         # print("After relu shape:", x.size())
-        # x = self.maxpool(x)
+        x = self.maxpool(x)
         # print("After maxpool shape:", x.size())  # 打印池化后的形状
-        # x = self.layer1(x)
-        # skip3 = x
+        x = self.layer1(x)
+        skip3 = x
         # print("After layer1 shape:", x.size())  # 打印第一层残差块后的形状
 
-        # x = self.layer2(x)
-        # skip2 = x
+        x = self.layer2(x)
+        skip2 = x
         # print("After layer2 shape:", x.size())  # 打印第二层残差块后的形状
 
-        # x = self.layer3(x)
-        # x = self.layer4(x)
-        # x = self.bn2(self.conv2(x))
-        # x = self.gud_up_proj_layer1(x)
-        # x = self.gud_up_proj_layer2(x, skip2)
-        # x = self.gud_up_proj_layer3(x, skip3)
-        # x = self.gud_up_proj_layer4(x, skip4)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.bn2(self.conv2(x))
+        x = self.gud_up_proj_layer1(x)
+        x = self.gud_up_proj_layer2(x, skip2)
+        x = self.gud_up_proj_layer3(x, skip3)
+        x = self.gud_up_proj_layer4(x, skip4)
         # print("After gud_up_proj_layer4 shape:", x.size())
 
         guidance = self.gud_up_proj_layer6(x)

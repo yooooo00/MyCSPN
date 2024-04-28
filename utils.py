@@ -138,24 +138,24 @@ def log_result(save_dir, error_avg, epoch, lr, best_model, split):
 def log_file_folder_make_lr(save_dir):
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir, 0o777)
-    train_log_file = os.path.join(save_dir, 'log_train.txt')
+    train_log_file = os.path.join(save_dir, 'log_train.csv')
     train_fd = open(train_log_file, 'w')
-    train_fd.write('epoch\t lr\t bestModel\t MSE\t RMSE\t MAE\t \
-                   DELTA1.02\t DELTA1.05\t DELTA1.10\t DELTA1.25\t \
-                   DELTA1.25^2\t DELTA1.25^3\t ABS_REL\n')
+    train_fd.write(f'epoch,lr,bestModel,MSE,RMSE,MAE,'
+                  f'DELTA1.02,DELTA1.05,DELTA1.10,DELTA1.25,'
+                  f'DELTA1.25^2,DELTA1.25^3,ABS_REL\n')
     train_fd.close()
 
-    eval_log_file = os.path.join(save_dir, 'log_eval.txt')
+    eval_log_file = os.path.join(save_dir, 'log_eval.csv')
     eval_fd = open(eval_log_file, 'w')
-    eval_fd.write('epoch\t lr\t bestModel\t MSE\t RMSE\t MAE\t \
-                  DELTA1.02\t DELTA1.05\t DELTA1.10\t DELTA1.25\t \
-                  DELTA1.25^2\t DELTA1.25^3\t ABS_REL\n')
+    eval_fd.write(f'epoch,lr,bestModel,MSE,RMSE,MAE,'
+                  f'DELTA1.02,DELTA1.05,DELTA1.10,DELTA1.25,'
+                  f'DELTA1.25^2,DELTA1.25^3,ABS_REL\n')
     eval_fd.close()
 
 def log_result_lr(save_dir, error_avg, epoch, lr, best_model, split):
-    format_str = ('%.4f\t %.4f\t %.4f\t\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\n')
-    train_log_file = os.path.join(save_dir, 'log_train.txt')
-    eval_log_file = os.path.join(save_dir, 'log_eval.txt')
+    format_str = ('%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n')
+    train_log_file = os.path.join(save_dir, 'log_train.csv')
+    eval_log_file = os.path.join(save_dir, 'log_eval.csv')
     if split == 'train':
         train_fd = open(train_log_file, 'a')
         train_fd.write(format_str%(epoch, lr, best_model, error_avg['MSE'], error_avg['RMSE'],\
@@ -203,8 +203,8 @@ def save_eval_img(data_set, model_dir, index, input_rgbd, input_rgb, gt_depth, p
         plt.imsave(save_name_pred, save_pred)
 
     elif data_set == 'nyudepth':
-        save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*25.5, 0))
-        save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*25.5, 0))
+        save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*1.0, 0))
+        save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*2.0, 0))
         # save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*1.0, 0))
         # save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*1.0, 0))
         save_depth=data_transform.ToPILImage()(torch.squeeze(old_depth*1.0, 0))

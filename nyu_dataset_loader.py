@@ -77,20 +77,20 @@ class NyuDepthDataset(Dataset):
             rgb_name = os.path.join(self.root_dir,
                     # os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/Depth-Anything_image_02",
                     os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\Depth-Anything_image_02",
-                    # os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/data/",
+                    # os.path.join("/media/ewing/新加卷/dataset/data/2011_10_03_drive_0027_sync/image_02/Depth-Anything_image_02",
                                  self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
                                 #  self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             # rgb_name = os.path.join(self.root_dir,
             #         os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_center/image_02",
             #                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             with open(rgb_name, 'rb') as fRgb:
-                rgb_image = Image.open(rgb_name).convert('RGB')
+                rgb_image = Image.open(rgb_name).convert('L')
             
             # depth_name = os.path.join(self.root_dir,
             #             os.path.join("/content/drive/MyDrive/Colab Notebooks/data/kitti/2011_10_03_drive_0027_sync/output_CREStereo",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             # depth_name = os.path.join(self.root_dir,
-            #             os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/output_CREStereo_full",
+            #             os.path.join("/media/ewing/新加卷/dataset/data/2011_10_03_drive_0027_sync/output_CREStereo_full",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             depth_name = os.path.join(self.root_dir,
                         os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\output_CREStereo_full",
@@ -99,12 +99,12 @@ class NyuDepthDataset(Dataset):
                 depth_image = Image.open(depth_name).convert('L')
 
             # gt_name=os.path.join(self.root_dir,
-            #             os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth",
+            #             os.path.join("/media/ewing/新加卷/dataset/data/2011_10_03_drive_0027_sync/image_02/groundtruth_uint16_8",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             gt_name=os.path.join(self.root_dir,
-                        os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint16_4",
+                        os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint8_8",
                                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
-            gt_image=Image.open(gt_name).convert('I')
+            gt_image=Image.open(gt_name)
             # from imagetest import imginfo
             # imginfo(depth_image)
             # imginfo(gt_image)
@@ -124,12 +124,13 @@ class NyuDepthDataset(Dataset):
         if self.split == 'train':
             tRgb = data_transform.Compose([transforms.Resize(s),
                                         #    data_transform.Rotation(degree),
-                                           transforms.ColorJitter(brightness = 0.4, contrast = 0.4, saturation = 0.4),
+                                        #    transforms.ColorJitter(brightness = 0.4, contrast = 0.4, saturation = 0.4),
 #                                           data_transform.Lighting(0.1, imagenet_eigval, imagenet_eigvec)])
                                            transforms.CenterCrop((228, 304)),
                                             # transforms.CenterCrop((300 ,1000)),
                                            transforms.ToTensor(),
-                                           transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                        #    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                        transforms.Normalize((0.449,), (0.226,)),
                                            transforms.ToPILImage()
                                            ])
 
@@ -140,8 +141,8 @@ class NyuDepthDataset(Dataset):
                                              ])
             gttDepth = transforms.Compose([
                 # transforms.ToPILImage(),
-                data_transform.ToTensorNormalize(),
-                transforms.ToPILImage(),
+                # data_transform.ToTensorNormalize(),
+                # transforms.ToPILImage(),
                 transforms.Resize(s),
                 # data_transform.Rotation(degree),
                 transforms.CenterCrop((228, 304))
@@ -181,8 +182,9 @@ class NyuDepthDataset(Dataset):
                                              transforms.CenterCrop((228, 304))])            
             gttDepth = transforms.Compose([
                 # transforms.ToPILImage(),
-                data_transform.ToTensorNormalize(),
-                transforms.ToPILImage(),
+                transforms.Resize(240),
+                # data_transform.ToTensorNormaltize(),
+                # transforms.ToPILImage(),
                 # transforms.Resize(s),
                 # data_transform.Rotation(degree),
                 transforms.CenterCrop((228, 304))

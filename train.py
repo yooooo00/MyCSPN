@@ -184,6 +184,7 @@ optimizer = optim.SGD(net.parameters(),
                       weight_decay=args.weight_decay,
                       nesterov=args.nesterov,
                       dampening=args.dampening)
+# optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
 scheduler = lrs.ReduceLROnPlateau(optimizer, 'min') # set up scheduler
 
@@ -287,7 +288,7 @@ def val(epoch):
 
     # saving best_model
     if is_best_model:
-        print('==> saving best model at epoch %d' % epoch)
+        print('==> saving best model at epoch %d\n' % epoch)
         best_model_pytorch = os.path.join(args.save_dir, 'best_model.pth')
         torch.save(net.state_dict(), best_model_pytorch)
 

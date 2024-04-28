@@ -93,9 +93,9 @@ class NyuDepthDataset(Dataset):
             #             os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             gt_name=os.path.join(self.root_dir,
-                        os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint16_4",
+                        os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint8_8",
                                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
-            gt_image=Image.open(gt_name).convert('I')
+            gt_image=Image.open(gt_name)
         else:
             print('error: the input format is not supported now!')
             return None
@@ -143,8 +143,9 @@ class NyuDepthDataset(Dataset):
                                              transforms.CenterCrop((228, 304))])
             gttDepth = transforms.Compose([
                 # transforms.ToPILImage(),
-                data_transform.ToTensorNormalize(),
-                transforms.ToPILImage(),
+                transforms.Resize(240),
+                # data_transform.ToTensorNormalize(),
+                # transforms.ToPILImage(),
                 # transforms.Resize(s),
                 # data_transform.Rotation(degree),
                 transforms.CenterCrop((228, 304))
