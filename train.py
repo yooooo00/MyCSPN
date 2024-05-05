@@ -240,7 +240,7 @@ def train(epoch):
 
     tmp_name = "epoch_%02d.pth" % (epoch)
     save_name = os.path.join(args.save_dir, tmp_name)
-    if epoch%10 == 0:
+    if epoch%100==0 and epoch!=0:
         torch.save(net.state_dict(), save_name)
 
 

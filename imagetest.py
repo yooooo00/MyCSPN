@@ -52,7 +52,7 @@ def changeimage(image_path,save_path=''):
     # 应用色彩映射
     # color_mapped_img = cv2.applyColorMap(img_uint8_cv, cv2.COLORMAP_MAGMA)
     # cv2.imwrite(save_path, color_mapped_img)
-    img_uint16 = np.array(image)  # 转换为NumPy数组
+    # img_uint16 = np.array(image)  # 转换为NumPy数组
     # imginfo(image)
     # img_uint16=np.where(img_uint16 == 0, 0, 2**16-1 - img_uint16)
     # img_uint16=((img_uint16/16384)**8).astype(np.uint16)
@@ -74,20 +74,20 @@ def changeimage(image_path,save_path=''):
     
     # img_test_2.save(save_path)
     # imginfo(img_test_2)
-    img_uint8 = (img_uint16//256).astype(np.uint8)  # 右移8位等同于除以256 # 转换为uint8
+    # img_uint8 = (img_uint16//256).astype(np.uint8)  # 右移8位等同于除以256 # 转换为uint8
     # img_uint8=np.where(img_uint8 == 0, 0, 65535 - img_uint8)
     # img_uint8=65535-img_uint8   
-    img_uint8 = Image.fromarray(img_uint8)# 如果需要，转换回PIL图像
+    # img_uint8 = Image.fromarray(img_uint8)# 如果需要，转换回PIL图像
     # img_uint8.save(save_path)
     # imginfo(img_uint8)
     
 # image = Image.open("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/output_CREStereo_full/0000000005.png")
 # image = Image.open("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth/0000000005.png")
 # imginfo(image)
-changeimage("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint16_8\\0000000005.png",
-            "D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint8\\uint8_8.png")
-old_path="D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint16_8"
-new_path="D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint8_8"
+changeimage("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\Depth-Anything_image_02\\0000000005_depth.png",
+            "D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint8\\5_depth.png")
+old_path="D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\Depth-Anything_image_02"
+new_path="D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\Depth-Anything_image_02_grey"
 # for oldfile in os.listdir(old_path):
 #     changeimage(os.path.join(old_path,oldfile),os.path.join(new_path,oldfile))
 

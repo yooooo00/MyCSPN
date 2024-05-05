@@ -4,14 +4,14 @@ rem set CUDA_VISIBLE_DEVICES=0
 
 set data_set=nyudepth
 set n_sample=100
-set train_list=datalist\png_train_test.csv
-set eval_list=datalist\png_val_test.csv
+set train_list=datalist\FallingThings_train.csv
+set eval_list=datalist\FallingThings_val.csv
 set model=cspn_unet
 
 set batch_size_train=1
-set num_epoch_train=100
+set num_epoch_train=200
 set batch_size_eval=1
-set model_name=sgd0427_step24_gt8_nopretrain_fullresnet50_grey
+set model_name=sgd0505_step24_FT200_resnet50
 set save_dir=output\%model_name%
 set best_model_dir=output\%model_name%
 

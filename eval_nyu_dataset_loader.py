@@ -68,14 +68,16 @@ class NyuDepthDataset(Dataset):
             rgb_name = os.path.join(self.root_dir,
                     # os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/Depth-Anything_image_02",
                     # os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/data/",
-                    os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\Depth-Anything_image_02",
-                                 self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
+                    # os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\Depth-Anything_image_02_grey",
+                    #              self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
                                 #  self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
+                    os.path.join("D:\\dataset\\data\\FallingThings\\kitchen_0_result\\left_depth_uint8",
+                                 self.rgbd_frame.iloc[idx, 0].replace('.jpg','.png')))
             # rgb_name = os.path.join(self.root_dir,
             #         os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_center/image_02",
             #                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
-            with open(rgb_name, 'rb') as fRgb:
-                rgb_image = Image.open(rgb_name).convert('RGB')
+            # with open(rgb_name, 'rb') as fRgb:
+            rgb_image = Image.open(rgb_name)
             
             # depth_name = os.path.join(self.root_dir,
             #             os.path.join("/content/drive/MyDrive/Colab Notebooks/data/kitti/2011_10_03_drive_0027_sync/output_CREStereo",
@@ -84,17 +86,22 @@ class NyuDepthDataset(Dataset):
             #             os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/output_CREStereo_full",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             depth_name = os.path.join(self.root_dir,
-                        os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\output_CREStereo_full",
-                                     self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
-            with open(depth_name, 'rb') as fDepth:
-                depth_image = Image.open(depth_name).convert('L')
+                        # os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\output_CREStereo_full",
+                        #              self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
+                        os.path.join("D:\\dataset\\data\\FallingThings\\kitchen_0_result\\output_CREStereo_full_200",
+                                     self.rgbd_frame.iloc[idx, 0]))
+            # with open(depth_name, 'rb') as fDepth:
+            depth_image = Image.open(depth_name)
 
             # gt_name=os.path.join(self.root_dir,
             #             os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/groundtruth",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
+            # gt_name=os.path.join(self.root_dir,
+            #             os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint8_8",
+            #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             gt_name=os.path.join(self.root_dir,
-                        os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint8_8",
-                                     self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
+                        os.path.join("D:\dataset\data\FallingThings\kitchen_0_result\left_gt_reverse_4_uint8",
+                                     self.rgbd_frame.iloc[idx, 0].replace('.jpg','.depth.png')))
             gt_image=Image.open(gt_name)
         else:
             print('error: the input format is not supported now!')
@@ -104,6 +111,7 @@ class NyuDepthDataset(Dataset):
         s = int(240*_s)
         degree = np.random.uniform(-5.0, 5.0)
         if self.split == 'train':
+            print('val.py train')
             tRgb = data_transform.Compose([transforms.Resize(s),
                                            data_transform.Rotation(degree),
                                            transforms.ColorJitter(brightness = 0.4, contrast = 0.4, saturation = 0.4),
@@ -136,7 +144,8 @@ class NyuDepthDataset(Dataset):
             tRgb = data_transform.Compose([transforms.Resize(240),
                                            transforms.CenterCrop((228, 304)),
                                            transforms.ToTensor(),
-                                           transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                        #    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                        transforms.Normalize((0.449,), (0.226,)),
                                            transforms.ToPILImage()])
 
             tDepth = data_transform.Compose([transforms.Resize(240),

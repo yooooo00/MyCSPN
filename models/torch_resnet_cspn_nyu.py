@@ -349,7 +349,7 @@ class ResNet(nn.Module):
                                                norm_type=cspn_config['norm_type'])
 
     def forward(self, x):
-        [batch_size, channel, height, width] = x.size()
+        # [batch_size, channel, height, width] = x.size()
         # print("Input shape:", x.size())  # 打印输入形状
         sparse_depth = x.narrow(1,1,1).clone()
         # print("Sparse depth shape:", sparse_depth.size())  # 打印稀疏深度图形状
@@ -396,7 +396,8 @@ def resnet18(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(BasicBlock, [2, 2, 2, 2], UpProj_Block, **kwargs)
+    # model = ResNet(BasicBlock, [2, 2, 2, 2], UpProj_Block, **kwargs)
+    model = ResNet(Bottleneck, [2, 2, 2, 2], UpProj_Block, **kwargs)
     if pretrained:
         print('==> Load pretrained model..')
         pretrained_dict = torch.load(model_path['resnet18'])

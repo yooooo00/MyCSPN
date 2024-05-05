@@ -204,7 +204,7 @@ def save_eval_img(data_set, model_dir, index, input_rgbd, input_rgb, gt_depth, p
 
     elif data_set == 'nyudepth':
         save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*1.0, 0))
-        save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*2.0, 0))
+        save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*1.0, 0))
         # save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*1.0, 0))
         # save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*1.0, 0))
         save_depth=data_transform.ToPILImage()(torch.squeeze(old_depth*1.0, 0))
