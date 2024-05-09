@@ -151,7 +151,7 @@ utils.log_file_folder_make_lr(args.save_dir)
 print('==> Building model..')
 
 if args.data_set == 'nyudepth':
-    net = model.resnet50(pretrained = args.pretrain,
+    net = model.resnet18(pretrained = args.pretrain,
                          cspn_config=cspn_config)
 # elif args.data_set == 'kitti':
 #     net = model.resnet18(pretrained = args.pretrain,
@@ -168,6 +168,21 @@ if args.resume:
     best_model_dict = torch.load(best_model_path)
     best_model_dict = update_model.remove_moudle(best_model_dict)
     net.load_state_dict(update_model.update_model(net, best_model_dict))
+    # 怀疑有加载问题，尝试自己的
+    # def remove_module_prefix(state_dict):
+    #     """移除保存的模型键名中的'module.'前缀"""
+    #     new_state_dict = {}
+    #     for key in state_dict:
+    #         if key.startswith('module.'):
+    #             new_state_dict[key[len('module.'):]] = state_dict[key]
+    #         else:
+    #             new_state_dict[key] = state_dict[key]
+    #     return new_state_dict
+    # # 加载原始状态字典
+    # original_state_dict = torch.load(best_model_path)
+    # # 移除'module.'前缀
+    # new_state_dict = remove_module_prefix(original_state_dict)
+    # net.load_state_dict(new_state_dict)
 
 
 if use_cuda:
@@ -178,13 +193,13 @@ if use_cuda:
 
 
 criterion = my_loss.Wighted_L1_Loss().cuda()
-optimizer = optim.SGD(net.parameters(),
-                      lr=args.lr,
-                      momentum=args.momentum,
-                      weight_decay=args.weight_decay,
-                      nesterov=args.nesterov,
-                      dampening=args.dampening)
-# optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+# optimizer = optim.SGD(net.parameters(),
+#                       lr=args.lr,
+#                       momentum=args.momentum,
+#                       weight_decay=args.weight_decay,
+#                       nesterov=args.nesterov,
+#                       dampening=args.dampening)
+optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
 scheduler = lrs.ReduceLROnPlateau(optimizer, 'min') # set up scheduler
 
@@ -206,7 +221,13 @@ def train(epoch):
         optimizer.zero_grad()
         inputs, targets = Variable(inputs), Variable(targets)
         outputs = net(inputs)
-        loss = criterion(outputs, targets)
+        # 修改了loss
+        # sparse_depth = inputs.narrow(1,1,1).clone()
+        # refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        loss=criterion(outputs, targets)
+        # loss_outputs = criterion(outputs, targets)
+        # loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        # loss= loss_outputs + loss_refined_depth
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
@@ -238,10 +259,11 @@ def train(epoch):
         old_lr = float(param_group['lr'])
     utils.log_result_lr(args.save_dir, error_avg, epoch, old_lr, False, 'train')
 
-    tmp_name = "epoch_%02d.pth" % (epoch)
+    # tmp_name = "epoch_%02d.pth" % (epoch)
+    tmp_name="newest_model.pth"
     save_name = os.path.join(args.save_dir, tmp_name)
-    if epoch%100==0 and epoch!=0:
-        torch.save(net.state_dict(), save_name)
+    # if epoch%100==0 and epoch!=0:
+    torch.save(net.state_dict(), save_name)
 
 
 def val(epoch):
@@ -260,8 +282,9 @@ def val(epoch):
         with torch.no_grad():
             if use_cuda:
                 inputs, targets = inputs.cuda(), targets.cuda()
-            inputs, targets = Variable(inputs, volatile=True), Variable(targets)
-            outputs = net(inputs)
+            with torch.no_grad():
+                inputs, targets = Variable(inputs, volatile=True), Variable(targets)
+                outputs = net(inputs)
         loss = criterion(outputs, targets)
         targets = targets.data.cpu()
         outputs = outputs.data.cpu()
@@ -288,6 +311,7 @@ def val(epoch):
 
     # saving best_model
     if is_best_model:
+    # if :
         print('==> saving best model at epoch %d\n' % epoch)
         best_model_pytorch = os.path.join(args.save_dir, 'best_model.pth')
         torch.save(net.state_dict(), best_model_pytorch)

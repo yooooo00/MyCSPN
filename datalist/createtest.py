@@ -37,20 +37,23 @@ if os.path.exists("/content/drive"):
 count=0
 failed=0
 failed2=0
-with open('D:\\projects\\MyCSPN\\datalist\\FallingThings_train.csv','w') as file:
+index=0
+with open('D:\\projects\\MyCSPN\\datalist\\FallingThings_val.csv','w') as file:
     file.write("Name\n")
     namelist=os.listdir('D:\\dataset\\data\\FallingThings\\kitchen_0_result\\left')
     # random.shuffle(namelist)
     for name in sorted(namelist):
-        name_right=name.replace('left', 'right')
-        if os.path.exists(os.path.join('D:\\dataset\\data\\FallingThings\\kitchen_0_result\\right',name_right)):
-            name2=name.split('.')[0]+'_depth.png'
-            # print(name)
-            if os.path.exists(os.path.join('D:\\dataset\\data\\FallingThings\\kitchen_0_result\\output_CREStereo_full',name)):
-                file.write(f"{name}\n")
-                count+=1
+        # name_right=name.replace('left', 'right')
+        # if os.path.exists(os.path.join('D:\\dataset\\data\\FallingThings\\kitchen_0_result\\right',name_right)):
+        #     name2=name.split('.')[0]+'_depth.png'
+        #     # print(name)
+        #     if os.path.exists(os.path.join('D:\\dataset\\data\\FallingThings\\kitchen_0_result\\output_CREStereo_full',name)):
+        if index%20==0:
+            file.write(f"{name}\n")
+            count+=1
                 
-            else:failed2+=1
-        else:failed+=1
+        #     else:failed2+=1
+        # else:failed+=1
+        index+=1
         # if count>=100:break
         print(f"\r{count}/{failed}/{failed2}",end='        ')

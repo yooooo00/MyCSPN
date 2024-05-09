@@ -139,6 +139,15 @@ def log_file_folder_make_lr(save_dir):
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir, 0o777)
     train_log_file = os.path.join(save_dir, 'log_train.csv')
+    if os.path.exists(train_log_file):
+        # 获取当前时间戳
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        # 创建新的日志文件名，加入时间戳
+        new_log_file = os.path.join(save_dir, f'log_train_{timestamp}.csv')
+        # 重命名旧日志文件
+        os.rename(train_log_file, new_log_file)
+        print(f"Existing log train file renamed to: {new_log_file}")
     train_fd = open(train_log_file, 'w')
     train_fd.write(f'epoch,lr,bestModel,MSE,RMSE,MAE,'
                   f'DELTA1.02,DELTA1.05,DELTA1.10,DELTA1.25,'
@@ -146,6 +155,15 @@ def log_file_folder_make_lr(save_dir):
     train_fd.close()
 
     eval_log_file = os.path.join(save_dir, 'log_eval.csv')
+    if os.path.exists(eval_log_file):
+        # 获取当前时间戳
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        # 创建新的日志文件名，加入时间戳
+        new_log_file = os.path.join(save_dir, f'log_eval_{timestamp}.csv')
+        # 重命名旧日志文件
+        os.rename(eval_log_file, new_log_file)
+        print(f"Existing log eval file renamed to: {new_log_file}")
     eval_fd = open(eval_log_file, 'w')
     eval_fd.write(f'epoch,lr,bestModel,MSE,RMSE,MAE,'
                   f'DELTA1.02,DELTA1.05,DELTA1.10,DELTA1.25,'

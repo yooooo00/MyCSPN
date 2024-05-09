@@ -100,7 +100,7 @@ class NyuDepthDataset(Dataset):
             #             os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\groundtruth_uint8_8",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             gt_name=os.path.join(self.root_dir,
-                        os.path.join("D:\dataset\data\FallingThings\kitchen_0_result\left_gt_reverse_4_uint8",
+                        os.path.join("D:\dataset\data\FallingThings\kitchen_0_result\left_gt_reverse_4_uint8_normalized",
                                      self.rgbd_frame.iloc[idx, 0].replace('.jpg','.depth.png')))
             gt_image=Image.open(gt_name)
         else:

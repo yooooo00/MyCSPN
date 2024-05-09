@@ -97,7 +97,7 @@ valloader = torch.utils.data.DataLoader(valset,
 print('==> Building model..')
 
 if args.data_set == 'nyudepth':
-    net = model.resnet50(cspn_config=cspn_config)
+    net = model.resnet18(cspn_config=cspn_config)
 # elif args.data_set == 'kitti':
 #     net = model.resnet18(cspn_config=cspn_config)
 # else:
@@ -140,8 +140,9 @@ def val(epoch):
         [inputs, targets, raw_rgb, old_depth] = [sample['rgbd'] , sample['depth'], sample['raw_rgb'],sample['old_depth']]
         if use_cuda:
             inputs, targets = inputs.cuda(), targets.cuda()
-        inputs, targets = Variable(inputs, volatile=True), Variable(targets)
-        outputs = net(inputs)
+        with torch.no_grad():
+            inputs, targets = Variable(inputs, volatile=True), Variable(targets)
+            outputs = net(inputs)
         loss = criterion(outputs, targets)
         targets = targets.data.cpu()
         outputs = outputs.data.cpu()

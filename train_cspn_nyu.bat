@@ -9,9 +9,10 @@ set eval_list=datalist\FallingThings_val.csv
 set model=cspn_unet
 
 set batch_size_train=1
-set num_epoch_train=200
+set num_epoch_train=100
 set batch_size_eval=1
-set model_name=sgd0505_step24_FT200_resnet50
+set learning_rate=0.001
+set model_name=adam0509_step24_FT200_normalized_resnet18_edited1024_traindepth
 set save_dir=output\%model_name%
 set best_model_dir=output\%model_name%
 
@@ -29,6 +30,8 @@ python train.py ^
 --save_dir %save_dir% ^
 --best_model_dir %best_model_dir% ^
 --cspn_step %cspn_step% ^
+--lr %learning_rate% ^
 -n
+
 
 
