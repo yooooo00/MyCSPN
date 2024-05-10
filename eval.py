@@ -108,23 +108,25 @@ if True:
     print('==> Resuming from best model..')
     best_model_path = os.path.join(args.best_model_dir, 'best_model.pth')
     assert os.path.isdir(args.best_model_dir), 'Error: no checkpoint directory found!'
-    best_model_dict = torch.load(best_model_path)
-    best_model_dict = update_model.remove_moudle(best_model_dict)
-    net.load_state_dict(update_model.update_model(net, best_model_dict))
+    # best_model_dict = torch.load(best_model_path)
+    # best_model_dict = update_model.remove_moudle(best_model_dict)
+    # net.load_state_dict(update_model.update_model(net, best_model_dict))
+    net.load_state_dict(torch.load(best_model_path))
 
 if use_cuda:
     net.cuda()
-    net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
+    # net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
     cudnn.benchmark = True
 
 criterion = my_loss.Wighted_L1_Loss().cuda()
 
-optimizer = optim.SGD(net.parameters(),
-                      lr=args.lr,
-                      momentum=args.momentum,
-                      weight_decay=args.weight_decay,
-                      nesterov=args.nesterov,
-                      dampening=args.dampening)
+# optimizer = optim.SGD(net.parameters(),
+#                       lr=args.lr,
+#                       momentum=args.momentum,
+#                       weight_decay=args.weight_decay,
+#                       nesterov=args.nesterov,
+#                       dampening=args.dampening)
+optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
 # evaluation
 def val(epoch):
@@ -143,7 +145,14 @@ def val(epoch):
         with torch.no_grad():
             inputs, targets = Variable(inputs, volatile=True), Variable(targets)
             outputs = net(inputs)
-        loss = criterion(outputs, targets)
+        # 修改了loss
+        sparse_depth = inputs.narrow(1,1,1).clone()
+        refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        # loss=criterion(outputs, targets)
+        loss_outputs = criterion(outputs, targets)
+        loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        loss= loss_outputs + loss_refined_depth
+        
         targets = targets.data.cpu()
         outputs = outputs.data.cpu()
         loss = loss.data.cpu()

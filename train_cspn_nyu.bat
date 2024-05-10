@@ -12,7 +12,7 @@ set batch_size_train=1
 set num_epoch_train=100
 set batch_size_eval=1
 set learning_rate=0.001
-set model_name=adam0509_step24_FT200_normalized_resnet18_edited1024_traindepth
+set model_name=adam0510_step24_FT200_normalized_resnet18_edited2048_traindepth
 set save_dir=output\%model_name%
 set best_model_dir=output\%model_name%
 
@@ -31,7 +31,7 @@ python train.py ^
 --best_model_dir %best_model_dir% ^
 --cspn_step %cspn_step% ^
 --lr %learning_rate% ^
--n
+-n -r
 
 
 

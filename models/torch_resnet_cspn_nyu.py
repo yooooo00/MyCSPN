@@ -335,7 +335,7 @@ class ResNet(nn.Module):
         self.gud_up_proj_layer4 = self._make_gud_up_conv_layer(Gudi_UpProj_Block_Cat, 256, 64, 114, 152)
         self.gud_up_proj_layer5 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 64, 1, 228, 304)
         self.gud_up_proj_layer6 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 64, 8, 228, 304)
-        # self.depth_refinement_net = DepthRefinementNet()
+        self.depth_refinement_net = DepthRefinementNet()
 
 
     def _make_layer(self, block, planes, blocks, stride=1):
@@ -371,7 +371,7 @@ class ResNet(nn.Module):
         # print("Input shape:", x.size())  # 打印输入形状
         sparse_depth = x.narrow(1,1,1).clone()
         # print("Sparse depth shape:", sparse_depth.size())  # 打印稀疏深度图形状
-        # refined_sparse_depth = self.depth_refinement_net(sparse_depth)
+        refined_sparse_depth = self.depth_refinement_net(sparse_depth)
 
         x = self.conv1_1(x)
         skip4 = x
@@ -393,11 +393,11 @@ class ResNet(nn.Module):
 
         x = self.layer3(x)
         # print("After layer3 shape:", x.size())
-        # x = self.layer4(x)
+        x = self.layer4(x)
         # print("After layer4 shape:", x.size())
         # x = self.bn2(self.conv2(x))
         # print("After bn2 shape:", x.size())
-        # x = self.gud_up_proj_layer1(x)
+        x = self.gud_up_proj_layer1(x)
         # print("gud_up_proj_layer1 shape:", x.size())
         x = self.gud_up_proj_layer2(x, skip2)
         # print("gud_up_proj_layer2 shape:", x.size())
@@ -411,8 +411,8 @@ class ResNet(nn.Module):
         x= self.gud_up_proj_layer5(x)
         # print("before post process layer shape:", x.size())
 
-        x = self.post_process_layer(guidance, x, sparse_depth)
-        # x = self.post_process_layer(guidance, x, refined_sparse_depth)
+        # x = self.post_process_layer(guidance, x, sparse_depth)
+        x = self.post_process_layer(guidance, x, refined_sparse_depth)
         # print("after post process layer shape:", x.size())
         # exit()
         return x

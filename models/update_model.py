@@ -16,7 +16,7 @@ def update_model(my_model, pretrained_dict):
     pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in my_model_dict}
     # 2. overwrite entries in the existing state dict
     my_model_dict.update(pretrained_dict)
-
+    torch.cuda.empty_cache()
     return my_model_dict
 
 # dont know why my offline saved model has 'module.' in front of all key name
@@ -28,6 +28,7 @@ def remove_moudle(remove_dict):
         else:
             removed_dict = remove_dict
         break
+    torch.cuda.empty_cache()
     return removed_dict
 
 def update_conv_spn_model(out_dict, in_dict):

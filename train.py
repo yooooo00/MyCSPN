@@ -158,16 +158,18 @@ if args.data_set == 'nyudepth':
 #                          cspn_config=cspn_config)
 # else:
 #     print("==> input unknow dataset..")
-
+import time
 if args.resume:
     # Load best model checkpoint.
     print('==> Resuming from best model..')
     best_model_path = os.path.join(args.best_model_dir, 'best_model.pth')
     print(best_model_path)
     assert os.path.isdir(args.best_model_dir), 'Error: no checkpoint directory found!'
-    best_model_dict = torch.load(best_model_path)
-    best_model_dict = update_model.remove_moudle(best_model_dict)
-    net.load_state_dict(update_model.update_model(net, best_model_dict))
+    # best_model_dict = torch.load(best_model_path)
+    # best_model_dict = update_model.remove_moudle(best_model_dict)
+    # net.load_state_dict(update_model.update_model(net, best_model_dict))
+    net.load_state_dict(torch.load(best_model_path))
+    torch.cuda.empty_cache()
     # 怀疑有加载问题，尝试自己的
     # def remove_module_prefix(state_dict):
     #     """移除保存的模型键名中的'module.'前缀"""
@@ -186,11 +188,12 @@ if args.resume:
 
 
 if use_cuda:
+    torch.cuda.empty_cache()
     net.cuda()
     assert torch.cuda.device_count() == 1, 'only support single gpu'
-    net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
+    # net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
     cudnn.benchmark = True
-
+torch.cuda.empty_cache()
 
 criterion = my_loss.Wighted_L1_Loss().cuda()
 # optimizer = optim.SGD(net.parameters(),
@@ -222,12 +225,12 @@ def train(epoch):
         inputs, targets = Variable(inputs), Variable(targets)
         outputs = net(inputs)
         # 修改了loss
-        # sparse_depth = inputs.narrow(1,1,1).clone()
-        # refined_sparse_depth = net.depth_refinement_net(sparse_depth)
-        loss=criterion(outputs, targets)
-        # loss_outputs = criterion(outputs, targets)
-        # loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
-        # loss= loss_outputs + loss_refined_depth
+        sparse_depth = inputs.narrow(1,1,1).clone()
+        refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        # loss=criterion(outputs, targets)
+        loss_outputs = criterion(outputs, targets)
+        loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        loss= loss_outputs + loss_refined_depth
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
@@ -285,7 +288,14 @@ def val(epoch):
             with torch.no_grad():
                 inputs, targets = Variable(inputs, volatile=True), Variable(targets)
                 outputs = net(inputs)
-        loss = criterion(outputs, targets)
+        
+        # 修改后的loss
+        sparse_depth = inputs.narrow(1,1,1).clone()
+        refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        # loss = criterion(outputs, targets)
+        loss_outputs = criterion(outputs, targets)
+        loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        loss= loss_outputs + loss_refined_depth
         targets = targets.data.cpu()
         outputs = outputs.data.cpu()
         loss = loss.data.cpu()
