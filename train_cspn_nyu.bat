@@ -4,15 +4,15 @@ rem set CUDA_VISIBLE_DEVICES=0
 
 set data_set=nyudepth
 set n_sample=100
-set train_list=datalist\FallingThings_train.csv
+set train_list=datalist\FallingThings_train_test.csv
 set eval_list=datalist\FallingThings_val.csv
 set model=cspn_unet
 
 set batch_size_train=1
 set num_epoch_train=100
 set batch_size_eval=1
-set learning_rate=0.001
-set model_name=adam0510_step24_FT200_normalized_resnet18_edited2048_traindepth
+set learning_rate=1e-4
+set model_name=sgd0511_step24_FT200_normalized_resnet18_edited2048_traindepth_single
 set save_dir=output\%model_name%
 set best_model_dir=output\%model_name%
 
@@ -31,7 +31,8 @@ python train.py ^
 --best_model_dir %best_model_dir% ^
 --cspn_step %cspn_step% ^
 --lr %learning_rate% ^
--n -r
+--resume_model_name best_model_20240511_032454.pth ^
+-n
 
 
 

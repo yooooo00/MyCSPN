@@ -23,10 +23,13 @@ class Wighted_L1_Loss(torch.nn.Module):
         return loss
 
     def forward_depth(self, refined_sparse, sparse_depth, groundtruth):
-        sparse_mask = sparse_depth > 0.0001
+        sparse_mask = sparse_depth > 0.1
         _refined_sparse = refined_sparse[sparse_mask]
         _groundtruth = groundtruth[sparse_mask]
         n_valid_element = _groundtruth.size(0)
+        if n_valid_element == 0:
+            return 0
         diff_mat = torch.abs(_refined_sparse - _groundtruth)
+        # diff_mat = torch.abs()
         loss = torch.sum(diff_mat) / n_valid_element
         return loss

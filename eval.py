@@ -111,7 +111,7 @@ if True:
     # best_model_dict = torch.load(best_model_path)
     # best_model_dict = update_model.remove_moudle(best_model_dict)
     # net.load_state_dict(update_model.update_model(net, best_model_dict))
-    net.load_state_dict(torch.load(best_model_path))
+    net.load_state_dict(torch.load(best_model_path),strict=False)
 
 if use_cuda:
     net.cuda()

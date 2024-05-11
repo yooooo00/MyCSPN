@@ -12,7 +12,7 @@ rem set best_model_dir=output\nyu_pretrain_cspn_1_net_cp500_bs8_adlr_ep40
 rem set cspn_norm_type=8sum_abs
 
 rem for non-positive affinity
-set best_model_dir=output\adam0509_step24_FT200_normalized_resnet18_edited1024
+set best_model_dir=output\adam0510_step24_FT200_normalized_resnet18_edited2048_traindepth_single
 set cspn_norm_type=8sum
 set cspn_step=24
 
@@ -25,5 +25,4 @@ python eval.py ^
 --best_model_dir %best_model_dir% ^
 --cspn_norm_type %cspn_norm_type% ^
 --cspn_step %cspn_step% ^
--n ^
--r
+-n -r

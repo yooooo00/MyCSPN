@@ -38,18 +38,20 @@ count=0
 failed=0
 failed2=0
 index=0
-with open('D:\\projects\\MyCSPN\\datalist\\FallingThings_val.csv','w') as file:
+with open('D:\\projects\\MyCSPN\\datalist\\FallingThings_train_test.csv','w') as file:
     file.write("Name\n")
     namelist=os.listdir('D:\\dataset\\data\\FallingThings\\kitchen_0_result\\left')
     # random.shuffle(namelist)
+    final_to_write=[]
     for name in sorted(namelist):
         # name_right=name.replace('left', 'right')
         # if os.path.exists(os.path.join('D:\\dataset\\data\\FallingThings\\kitchen_0_result\\right',name_right)):
         #     name2=name.split('.')[0]+'_depth.png'
         #     # print(name)
         #     if os.path.exists(os.path.join('D:\\dataset\\data\\FallingThings\\kitchen_0_result\\output_CREStereo_full',name)):
-        if index%20==0:
-            file.write(f"{name}\n")
+        if index%20!=0:
+            # file.write(f"{name}\n")
+            final_to_write.append(name)
             count+=1
                 
         #     else:failed2+=1
@@ -57,3 +59,5 @@ with open('D:\\projects\\MyCSPN\\datalist\\FallingThings_val.csv','w') as file:
         index+=1
         # if count>=100:break
         print(f"\r{count}/{failed}/{failed2}",end='        ')
+    random.shuffle(final_to_write)
+    for name in final_to_write:file.write(f"{name}\n")

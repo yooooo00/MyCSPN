@@ -58,6 +58,7 @@ parser.add_argument('--eval_list', default='data/nyudepth_hdf5/nyudepth_hdf5_val
 parser.add_argument('--model', default='base_model', type=str, help='model for net')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument('--pretrain', '-p', action='store_true', help='load pretrained resnet model')
+parser.add_argument('--resume_model_name', default='best_model.pth', type=str, help='resume model name')
 
 args = parser.parse_args()
 
@@ -81,7 +82,7 @@ use_cuda = torch.cuda.is_available()
 best_rmse = sys.maxsize  # best test rmse
 cspn_config = {'step': args.cspn_step, 'norm_type': args.cspn_norm_type}
 start_epoch = 0 # start from epoch 0 or last checkpoint epoch
-
+best_loss=sys.maxsize
 
 # Data
 print('==> Preparing data..')
@@ -159,17 +160,19 @@ if args.data_set == 'nyudepth':
 # else:
 #     print("==> input unknow dataset..")
 import time
+from datetime import datetime
 if args.resume:
     # Load best model checkpoint.
     print('==> Resuming from best model..')
-    best_model_path = os.path.join(args.best_model_dir, 'best_model.pth')
+    best_model_path = os.path.join(args.best_model_dir, args.resume_model_name)
     print(best_model_path)
     assert os.path.isdir(args.best_model_dir), 'Error: no checkpoint directory found!'
     # best_model_dict = torch.load(best_model_path)
     # best_model_dict = update_model.remove_moudle(best_model_dict)
     # net.load_state_dict(update_model.update_model(net, best_model_dict))
-    net.load_state_dict(torch.load(best_model_path))
-    torch.cuda.empty_cache()
+    net.load_state_dict(torch.load(best_model_path),strict=False)
+    # torch.cuda.empty_cache()
+    # os.rename(best_model_path, os.path.join(args.best_model_dir, 'best_model_' + str(datetime.now().strftime('%Y%m%d_%H%M%S')) + '.pth'))
     # 怀疑有加载问题，尝试自己的
     # def remove_module_prefix(state_dict):
     #     """移除保存的模型键名中的'module.'前缀"""
@@ -188,21 +191,21 @@ if args.resume:
 
 
 if use_cuda:
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
     net.cuda()
     assert torch.cuda.device_count() == 1, 'only support single gpu'
     # net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
     cudnn.benchmark = True
-torch.cuda.empty_cache()
+# torch.cuda.empty_cache()
 
 criterion = my_loss.Wighted_L1_Loss().cuda()
-# optimizer = optim.SGD(net.parameters(),
-#                       lr=args.lr,
-#                       momentum=args.momentum,
-#                       weight_decay=args.weight_decay,
-#                       nesterov=args.nesterov,
-#                       dampening=args.dampening)
-optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+optimizer = optim.SGD(net.parameters(),
+                      lr=args.lr,
+                      momentum=args.momentum,
+                      weight_decay=args.weight_decay,
+                      nesterov=args.nesterov,
+                      dampening=args.dampening)
+# optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
 scheduler = lrs.ReduceLROnPlateau(optimizer, 'min') # set up scheduler
 
@@ -234,6 +237,7 @@ def train(epoch):
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
+        loss_number=train_loss / (batch_idx + 1)
         error_str = 'Epoch: %d, loss=%.4f' % (epoch, train_loss / (batch_idx + 1))
         tbar.set_description(error_str)
 
@@ -260,7 +264,7 @@ def train(epoch):
                                 args.batch_size_train)
     for param_group in optimizer.param_groups:
         old_lr = float(param_group['lr'])
-    utils.log_result_lr(args.save_dir, error_avg, epoch, old_lr, False, 'train')
+    utils.log_result_lr(args.save_dir, error_avg, epoch, old_lr, False, 'train',loss_num=loss_number)
 
     # tmp_name = "epoch_%02d.pth" % (epoch)
     tmp_name="newest_model.pth"
@@ -270,7 +274,7 @@ def train(epoch):
 
 
 def val(epoch):
-    global best_rmse
+    global best_rmse,best_loss
     is_best_model = False
     net.eval()
     total_step_val = 0
@@ -300,6 +304,7 @@ def val(epoch):
         outputs = outputs.data.cpu()
         loss = loss.data.cpu()
         eval_loss += loss.item()
+        loss_number=eval_loss / (batch_idx + 1)
         error_str = 'Epoch: %d, loss=%.4f' % (epoch, eval_loss / (batch_idx + 1))
         tbar.set_description(error_str)
 
@@ -312,12 +317,15 @@ def val(epoch):
                       error_result, error_avg, print_out=True)
 
     #log best_model
-    if utils.updata_best_model(error_avg, best_rmse):
+    # if utils.updata_best_model(error_avg, best_rmse):
+    #     is_best_model = True
+    #     best_rmse = error_avg['RMSE']
+    if loss_number<best_loss:
         is_best_model = True
-        best_rmse = error_avg['RMSE']
+        best_loss = loss_number
     for param_group in optimizer.param_groups:
         old_lr = float(param_group['lr'])
-    utils.log_result_lr(args.save_dir, error_avg, epoch, old_lr, is_best_model, 'eval')
+    utils.log_result_lr(args.save_dir, error_avg, epoch, old_lr, is_best_model, 'eval',loss_num=loss_number)
 
     # saving best_model
     if is_best_model:
@@ -327,7 +335,8 @@ def val(epoch):
         torch.save(net.state_dict(), best_model_pytorch)
 
     #updata lr
-    scheduler.step(error_avg['MAE'], epoch)
+    # scheduler.step(error_avg['MAE'], epoch)
+    scheduler.step(loss_number, epoch)
 
 
 def train_val():

@@ -115,24 +115,24 @@ def log_file_folder_make(save_dir):
                   DELTA1.25\t DELTA1.25^2\t DELTA1.25^3\t ABS_REL\n')
     eval_fd.close()
 
-def log_result(save_dir, error_avg, epoch, lr, best_model, split):
-    format_str = ('%.4f\t %.4f\t\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\n')
-    train_log_file = os.path.join(save_dir, 'log_train.txt')
-    eval_log_file = os.path.join(save_dir, 'log_eval.txt')
-    if split == 'train':
-        train_fd = open(train_log_file, 'a')
-        train_fd.write(format_str%(epoch, best_model, error_avg['MSE'], error_avg['RMSE'],\
-                                   error_avg['MAE'], error_avg['DELTA1.02'], error_avg['DELTA1.05'],\
-                                   error_avg['DELTA1.10'], error_avg['DELTA1.25'], error_avg['DELTA1.25^2'],\
-                                   error_avg['DELTA1.25^3'], error_avg['ABS_REL']))
-        train_fd.close()
-    elif split == 'eval':
-        eval_fd = open(eval_log_file, 'a')
-        eval_fd.write(format_str%(epoch, best_model, error_avg['MSE'], error_avg['RMSE'],\
-                                  error_avg['MAE'], error_avg['DELTA1.02'], error_avg['DELTA1.05'],\
-                                  error_avg['DELTA1.10'], error_avg['DELTA1.25'], error_avg['DELTA1.25^2'],\
-                                  error_avg['DELTA1.25^3'], error_avg['ABS_REL']))
-        eval_fd.close()
+# def log_result(save_dir, error_avg, epoch, lr, best_model, split):
+#     format_str = ('%.4f\t %.4f\t\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\t %.4f\n')
+#     train_log_file = os.path.join(save_dir, 'log_train.txt')
+#     eval_log_file = os.path.join(save_dir, 'log_eval.txt')
+#     if split == 'train':
+#         train_fd = open(train_log_file, 'a')
+#         train_fd.write(format_str%(epoch, best_model, error_avg['MSE'], error_avg['RMSE'],\
+#                                    error_avg['MAE'], error_avg['DELTA1.02'], error_avg['DELTA1.05'],\
+#                                    error_avg['DELTA1.10'], error_avg['DELTA1.25'], error_avg['DELTA1.25^2'],\
+#                                    error_avg['DELTA1.25^3'], error_avg['ABS_REL']))
+#         train_fd.close()
+#     elif split == 'eval':
+#         eval_fd = open(eval_log_file, 'a')
+#         eval_fd.write(format_str%(epoch, best_model, error_avg['MSE'], error_avg['RMSE'],\
+#                                   error_avg['MAE'], error_avg['DELTA1.02'], error_avg['DELTA1.05'],\
+#                                   error_avg['DELTA1.10'], error_avg['DELTA1.25'], error_avg['DELTA1.25^2'],\
+#                                   error_avg['DELTA1.25^3'], error_avg['ABS_REL']))
+#         eval_fd.close()
 
 # log best_model
 def log_file_folder_make_lr(save_dir):
@@ -149,7 +149,7 @@ def log_file_folder_make_lr(save_dir):
         os.rename(train_log_file, new_log_file)
         print(f"Existing log train file renamed to: {new_log_file}")
     train_fd = open(train_log_file, 'w')
-    train_fd.write(f'epoch,lr,bestModel,MSE,RMSE,MAE,'
+    train_fd.write(f'epoch,lr,bestModel,loss_num,MSE,RMSE,MAE,'
                   f'DELTA1.02,DELTA1.05,DELTA1.10,DELTA1.25,'
                   f'DELTA1.25^2,DELTA1.25^3,ABS_REL\n')
     train_fd.close()
@@ -165,25 +165,25 @@ def log_file_folder_make_lr(save_dir):
         os.rename(eval_log_file, new_log_file)
         print(f"Existing log eval file renamed to: {new_log_file}")
     eval_fd = open(eval_log_file, 'w')
-    eval_fd.write(f'epoch,lr,bestModel,MSE,RMSE,MAE,'
+    eval_fd.write(f'epoch,lr,bestModel,loss_num,MSE,RMSE,MAE,'
                   f'DELTA1.02,DELTA1.05,DELTA1.10,DELTA1.25,'
                   f'DELTA1.25^2,DELTA1.25^3,ABS_REL\n')
     eval_fd.close()
 
-def log_result_lr(save_dir, error_avg, epoch, lr, best_model, split):
-    format_str = ('%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n')
+def log_result_lr(save_dir, error_avg, epoch, lr, best_model, split, loss_num):
+    format_str = ('%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n')
     train_log_file = os.path.join(save_dir, 'log_train.csv')
     eval_log_file = os.path.join(save_dir, 'log_eval.csv')
     if split == 'train':
         train_fd = open(train_log_file, 'a')
-        train_fd.write(format_str%(epoch, lr, best_model, error_avg['MSE'], error_avg['RMSE'],\
+        train_fd.write(format_str%(epoch, lr, best_model, loss_num,error_avg['MSE'], error_avg['RMSE'],\
                                    error_avg['MAE'], error_avg['DELTA1.02'], error_avg['DELTA1.05'],\
                                    error_avg['DELTA1.10'], error_avg['DELTA1.25'], error_avg['DELTA1.25^2'],\
                                    error_avg['DELTA1.25^3'], error_avg['ABS_REL']))
         train_fd.close()
     elif split == 'eval':
         eval_fd = open(eval_log_file, 'a')
-        eval_fd.write(format_str%(epoch, lr, best_model, error_avg['MSE'], error_avg['RMSE'],\
+        eval_fd.write(format_str%(epoch, lr, best_model, loss_num,error_avg['MSE'], error_avg['RMSE'],\
                                   error_avg['MAE'], error_avg['DELTA1.02'], error_avg['DELTA1.05'],\
                                   error_avg['DELTA1.10'], error_avg['DELTA1.25'], error_avg['DELTA1.25^2'],\
                                   error_avg['DELTA1.25^3'], error_avg['ABS_REL']))
