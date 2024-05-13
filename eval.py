@@ -98,7 +98,8 @@ valloader = torch.utils.data.DataLoader(valset,
 print('==> Building model..')
 
 if args.data_set == 'nyudepth':
-    net = model.resnet18(cspn_config=cspn_config)
+    # net = model.resnet18(cspn_config=cspn_config)
+    net =model.my_refinement_net()
 # elif args.data_set == 'kitti':
 #     net = model.resnet18(cspn_config=cspn_config)
 # else:
@@ -141,19 +142,19 @@ def val(epoch):
                  'DELTA1.02':0, 'DELTA1.05':0, 'DELTA1.10':0, \
                  'DELTA1.25':0, 'DELTA1.25^2':0, 'DELTA1.25^3':0}
     for batch_idx, sample in enumerate(valloader):
-        [inputs, targets, raw_rgb, old_depth] = [sample['rgbd'] , sample['depth'], sample['raw_rgb'],sample['old_depth']]
+        [inputs, targets, raw_rgb, old_depth] = [sample['old_depth'] , sample['depth'], sample['raw_rgb'],sample['old_depth']]
         if use_cuda:
             inputs, targets = inputs.cuda(), targets.cuda()
         with torch.no_grad():
             inputs, targets = Variable(inputs, volatile=True), Variable(targets)
             outputs = net(inputs)
         # 修改了loss
-        sparse_depth = inputs.narrow(1,1,1).clone()
-        refined_sparse_depth = net.depth_refinement_net(sparse_depth)
-        # loss=criterion(outputs, targets)
-        loss_outputs = criterion(outputs, targets)
-        loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
-        loss= loss_outputs + loss_refined_depth
+        # sparse_depth = inputs.narrow(1,1,1).clone()
+        # refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        loss=criterion.forward_depth(outputs, inputs,targets)
+        # loss_outputs = criterion(outputs, targets)
+        # loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        # loss= loss_outputs + loss_refined_depth
         
         targets = targets.data.cpu()
         outputs = outputs.data.cpu()

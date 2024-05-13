@@ -154,8 +154,9 @@ utils.log_file_folder_make_lr(args.save_dir)
 print('==> Building model..')
 
 if args.data_set == 'nyudepth':
-    net = model.resnet18(pretrained = args.pretrain,
-                         cspn_config=cspn_config)
+    # net = model.resnet18(pretrained = args.pretrain,
+    #                      cspn_config=cspn_config)
+    net =model.my_refinement_net()
 # elif args.data_set == 'kitti':
 #     net = model.resnet18(pretrained = args.pretrain,
 #                          cspn_config=cspn_config)
@@ -201,19 +202,20 @@ if use_cuda:
 # torch.cuda.empty_cache()
 
 criterion = my_loss.Wighted_L1_Loss().cuda()
-optimizer = optim.SGD(net.parameters(),
-                      lr=args.lr,
-                      momentum=args.momentum,
-                      weight_decay=args.weight_decay,
-                      nesterov=args.nesterov,
-                      dampening=args.dampening)
-# optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+# optimizer = optim.SGD(net.parameters(),
+#                       lr=args.lr,
+#                       momentum=args.momentum,
+#                       weight_decay=args.weight_decay,
+#                       nesterov=args.nesterov,
+#                       dampening=args.dampening)
+optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
 scheduler = lrs.ReduceLROnPlateau(optimizer, 'min') # set up scheduler
 
 
 # Training
 def train(epoch):
+    global best_loss_train
     net.train()
     total_step_train = 0
     train_loss = 0.0
@@ -223,22 +225,22 @@ def train(epoch):
 
     tbar = tqdm(trainloader)
     for batch_idx, sample in enumerate(tbar):
-        [inputs, targets] = [sample['rgbd'] , sample['depth']]
+        [inputs, targets] = [sample['sparse'] , sample['depth']]
         if use_cuda:
             inputs, targets = inputs.cuda(), targets.cuda()
         optimizer.zero_grad()
         inputs, targets = Variable(inputs), Variable(targets)
         outputs = net(inputs)
         # 修改了loss
-        sparse_depth = inputs.narrow(1,1,1).clone()
-        rgb_image = inputs.narrow(1, 0, 1).clone()
+        # sparse_depth = inputs.narrow(1,1,1).clone()
+        # rgb_image = inputs.narrow(1, 0, 1).clone()
         # refined_sparse_depth = net.depth_refinement_net(sparse_depth)
-        refined_rgb_image=net.depth_refinement_net(rgb_image)
-        # loss=criterion(outputs, targets)
-        loss_outputs = criterion(outputs, targets)
+        # refined_rgb_image=net.depth_refinement_net(rgb_image)
+        loss=criterion.forward_depth(outputs, inputs,targets)
+        # loss_outputs = criterion(outputs, targets)
         # loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
-        loss_refined_depth= criterion.forward_depth(refined_rgb_image, sparse_depth, targets)
-        loss= loss_outputs + loss_refined_depth
+        # loss_refined_depth= criterion.forward_depth(refined_rgb_image, sparse_depth, targets)
+        # loss= loss_outputs + loss_refined_depth
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
@@ -276,11 +278,13 @@ def train(epoch):
     save_name = os.path.join(args.save_dir, tmp_name)
     # if epoch%100==0 and epoch!=0:
     torch.save(net.state_dict(), save_name)
-    if epoch%20==19:
-        torch.save(net.state_dict(), "epoch_%02d.pth" % (epoch))
+    if epoch%50==49:
+        save_name=os.path.join(args.save_dir, "epoch_%02d.pth" % (epoch))
+        torch.save(net.state_dict(), save_name)
     if loss_number<best_loss_train:
         best_loss_train = loss_number
-        torch.save(net.state_dict(), "best_train_%.2f.pth"%(loss_number))
+        save_name_loss=os.path.join(args.save_dir, "best_train_%.2f.pth"%(loss_number))
+        torch.save(net.state_dict(), save_name_loss)
 
 
 def val(epoch):
@@ -295,7 +299,7 @@ def val(epoch):
 
     tbar = tqdm(valloader)
     for batch_idx, sample in enumerate(tbar):
-        [inputs, targets] = [sample['rgbd'] , sample['depth']]
+        [inputs, targets] = [sample['sparse'] , sample['depth']]
         with torch.no_grad():
             if use_cuda:
                 inputs, targets = inputs.cuda(), targets.cuda()
@@ -304,12 +308,12 @@ def val(epoch):
                 outputs = net(inputs)
         
         # 修改后的loss
-        sparse_depth = inputs.narrow(1,1,1).clone()
-        refined_sparse_depth = net.depth_refinement_net(sparse_depth)
-        # loss = criterion(outputs, targets)
-        loss_outputs = criterion(outputs, targets)
-        loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
-        loss= loss_outputs + loss_refined_depth
+        # sparse_depth = inputs.narrow(1,1,1).clone()
+        # refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        loss = criterion.forward_depth(outputs, inputs,targets)
+        # loss_outputs = criterion(outputs, targets)
+        # loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        # loss= loss_outputs + loss_refined_depth
         targets = targets.data.cpu()
         outputs = outputs.data.cpu()
         loss = loss.data.cpu()

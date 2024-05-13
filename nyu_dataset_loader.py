@@ -209,7 +209,7 @@ class NyuDepthDataset(Dataset):
             rgbd_image = torch.cat((rgb_image, sparse_image), 0)
             
         # sample = {'rgbd': rgbd_image, 'depth': depth_image }
-        sample = {'rgbd': rgbd_image, 'depth': gt_image }
+        sample = {'rgbd': rgbd_image, 'depth': gt_image ,'sparse': depth_image}
         # plt.imshow(transforms.ToPILImage()(gt_image))
         # plt.imshow(transforms.ToPILImage()(rgb_image))
         # plt.imshow(transforms.ToPILImage()(sparse_image))

@@ -2,8 +2,8 @@
 
 set data_set=nyudepth
 set n_sample=500
-set eval_list=datalist\FallingThings_train_less.csv
-@REM set eval_list=datalist\FallingThings_val.csv
+@REM set eval_list=datalist\FallingThings_train_less.csv
+set eval_list=datalist\FallingThings_val.csv
 set model=cspn_unet
 set batch_size_eval=1
 
@@ -13,10 +13,10 @@ rem set cspn_norm_type=8sum_abs
 
 
 rem for non-positive affinity
-set best_model_dir=output\sgd0512_step24_FT200_normalized_resnet18_edited1024_traindepth_single
+set best_model_dir=output\adam0513_train_refine
 set cspn_norm_type=8sum
 set cspn_step=24
-set resume_model_name=newest_model.pth
+set resume_model_name=best_train_26.22.pth
 
 python eval.py ^
 --data_set %data_set% ^

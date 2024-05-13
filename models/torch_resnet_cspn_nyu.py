@@ -276,6 +276,22 @@ class Gudi_UpProj_Block_Cat(nn.Module):
         return out
 
 #用于处理双目depth的cnn网络
+# class DepthRefinementNet(nn.Module):
+#     def __init__(self):
+#         super(DepthRefinementNet, self).__init__()
+#         self.conv1 = nn.Conv2d(1, 64, kernel_size=3, padding=1)
+#         self.bn1 = nn.BatchNorm2d(64)
+#         self.relu = nn.ReLU(inplace=True)
+
+#         self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+#         self.bn2 = nn.BatchNorm2d(64)
+#         self.conv3 = nn.Conv2d(64, 1, kernel_size=3, padding=1)
+        
+#     def forward(self, x):
+#         x = self.relu(self.bn1(self.conv1(x)))
+#         x = self.relu(self.bn2(self.conv2(x)))
+#         x = self.conv3(x)
+#         return x
 class DepthRefinementNet(nn.Module):
     def __init__(self):
         super(DepthRefinementNet, self).__init__()
@@ -283,14 +299,27 @@ class DepthRefinementNet(nn.Module):
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
 
-        self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(64)
-        self.conv3 = nn.Conv2d(64, 1, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(128)
+        
+        self.conv3 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(256)
+
+        self.conv4 = nn.Conv2d(256, 128, kernel_size=3, padding=1)
+        self.bn4 = nn.BatchNorm2d(128)
+
+        self.conv5 = nn.Conv2d(128, 64, kernel_size=3, padding=1)
+        self.bn5 = nn.BatchNorm2d(64)
+        
+        self.conv6 = nn.Conv2d(64, 1, kernel_size=3, padding=1)
         
     def forward(self, x):
         x = self.relu(self.bn1(self.conv1(x)))
         x = self.relu(self.bn2(self.conv2(x)))
-        x = self.conv3(x)
+        x = self.relu(self.bn3(self.conv3(x)))
+        x = self.relu(self.bn4(self.conv4(x)))
+        x = self.relu(self.bn5(self.conv5(x)))
+        x = self.conv6(x)
         return x
 
 class ResNet(nn.Module):
@@ -416,6 +445,10 @@ class ResNet(nn.Module):
         # print("after post process layer shape:", x.size())
         # exit()
         return x
+
+def my_refinement_net():
+    model=DepthRefinementNet()
+    return model
 
 
 def resnet18(pretrained=False, **kwargs):
