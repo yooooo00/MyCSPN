@@ -310,14 +310,14 @@ class ResNet(nn.Module):
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        # self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.mid_channel = 256*block.expansion
         # self.conv2 = nn.Conv2d(512*block.expansion, 512*block.expansion, kernel_size=3,
         #                        stride=1, padding=1, bias=False)
         # self.bn2 = nn.BatchNorm2d(512*block.expansion)
-        self.up_proj_layer1 = self._make_up_conv_layer(up_proj_block,
-                                                       self.mid_channel,
-                                                       int(self.mid_channel/2))
+        # self.up_proj_layer1 = self._make_up_conv_layer(up_proj_block,
+        #                                                self.mid_channel,
+        #                                                int(self.mid_channel/2))
         self.up_proj_layer2 = self._make_up_conv_layer(up_proj_block,
                                                        int(self.mid_channel/2),
                                                        int(self.mid_channel/4))
@@ -393,11 +393,11 @@ class ResNet(nn.Module):
 
         x = self.layer3(x)
         # print("After layer3 shape:", x.size())
-        x = self.layer4(x)
+        # x = self.layer4(x)
         # print("After layer4 shape:", x.size())
         # x = self.bn2(self.conv2(x))
         # print("After bn2 shape:", x.size())
-        x = self.gud_up_proj_layer1(x)
+        # x = self.gud_up_proj_layer1(x)
         # print("gud_up_proj_layer1 shape:", x.size())
         x = self.gud_up_proj_layer2(x, skip2)
         # print("gud_up_proj_layer2 shape:", x.size())

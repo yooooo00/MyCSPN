@@ -46,6 +46,7 @@ parser.add_argument('--eval_list', default='datalist/nyudepth_hdf5_val.csv', typ
 parser.add_argument('--model', default='base_model', type=str, help='model for net')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument('--pretrain', '-p', action='store_true', help='load pretrained resnet model')
+parser.add_argument('--resume_model_name', default='best_model.pth', type=str, help='resume model name')
 
 args = parser.parse_args()
 
@@ -106,7 +107,8 @@ if args.data_set == 'nyudepth':
 if True:
     # Load best model checkpoint.
     print('==> Resuming from best model..')
-    best_model_path = os.path.join(args.best_model_dir, 'best_model.pth')
+    # best_model_path = os.path.join(args.best_model_dir, 'best_model.pth')
+    best_model_path = os.path.join(args.best_model_dir, args.resume_model_name)
     assert os.path.isdir(args.best_model_dir), 'Error: no checkpoint directory found!'
     # best_model_dict = torch.load(best_model_path)
     # best_model_dict = update_model.remove_moudle(best_model_dict)

@@ -171,7 +171,7 @@ def log_file_folder_make_lr(save_dir):
     eval_fd.close()
 
 def log_result_lr(save_dir, error_avg, epoch, lr, best_model, split, loss_num):
-    format_str = ('%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n')
+    format_str = ('%.4f,%.8f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n')
     train_log_file = os.path.join(save_dir, 'log_train.csv')
     eval_log_file = os.path.join(save_dir, 'log_eval.csv')
     if split == 'train':

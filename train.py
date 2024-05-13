@@ -27,6 +27,7 @@ import loss as my_loss
 import lr_scheduler as lrs
 from tqdm import tqdm
 
+# from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description='PyTorch Sparse To Dense Training')
 
@@ -83,6 +84,7 @@ best_rmse = sys.maxsize  # best test rmse
 cspn_config = {'step': args.cspn_step, 'norm_type': args.cspn_norm_type}
 start_epoch = 0 # start from epoch 0 or last checkpoint epoch
 best_loss=sys.maxsize
+best_loss_train=sys.maxsize
 
 # Data
 print('==> Preparing data..')
@@ -229,10 +231,13 @@ def train(epoch):
         outputs = net(inputs)
         # 修改了loss
         sparse_depth = inputs.narrow(1,1,1).clone()
-        refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        rgb_image = inputs.narrow(1, 0, 1).clone()
+        # refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        refined_rgb_image=net.depth_refinement_net(rgb_image)
         # loss=criterion(outputs, targets)
         loss_outputs = criterion(outputs, targets)
-        loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        # loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        loss_refined_depth= criterion.forward_depth(refined_rgb_image, sparse_depth, targets)
         loss= loss_outputs + loss_refined_depth
         loss.backward()
         optimizer.step()
@@ -271,6 +276,11 @@ def train(epoch):
     save_name = os.path.join(args.save_dir, tmp_name)
     # if epoch%100==0 and epoch!=0:
     torch.save(net.state_dict(), save_name)
+    if epoch%20==19:
+        torch.save(net.state_dict(), "epoch_%02d.pth" % (epoch))
+    if loss_number<best_loss_train:
+        best_loss_train = loss_number
+        torch.save(net.state_dict(), "best_train_%.2f.pth"%(loss_number))
 
 
 def val(epoch):

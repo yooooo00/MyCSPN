@@ -11,11 +11,11 @@ set model=cspn_unet
 set batch_size_train=1
 set num_epoch_train=100
 set batch_size_eval=1
-set learning_rate=1e-4
-set model_name=sgd0511_step24_FT200_normalized_resnet18_edited2048_traindepth_single
+set learning_rate=0.01
+set model_name=sgd0513_step24_FT200_normalized_resnet18_edited1024_trainrgb
 set save_dir=output\%model_name%
 set best_model_dir=output\%model_name%
-
+set resume_model_name=best_model_20240511_032454.pth
 set cspn_step=24
 
 python train.py ^
@@ -31,7 +31,7 @@ python train.py ^
 --best_model_dir %best_model_dir% ^
 --cspn_step %cspn_step% ^
 --lr %learning_rate% ^
---resume_model_name best_model_20240511_032454.pth ^
+--resume_model_name %resume_model_name% ^
 -n
 
 
