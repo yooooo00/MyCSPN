@@ -47,6 +47,8 @@ parser.add_argument('--model', default='base_model', type=str, help='model for n
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 parser.add_argument('--pretrain', '-p', action='store_true', help='load pretrained resnet model')
 parser.add_argument('--resume_model_name', default='best_model.pth', type=str, help='resume model name')
+parser.add_argument('--refine_model_dir',default='output/model', type=str, help='refine model name')
+parser.add_argument('--resume_refine_model_name',default='best_model.pth', type=str, help='refine model.pth')
 
 args = parser.parse_args()
 
@@ -114,6 +116,10 @@ if True:
     # best_model_dict = update_model.remove_moudle(best_model_dict)
     # net.load_state_dict(update_model.update_model(net, best_model_dict))
     net.load_state_dict(torch.load(best_model_path),strict=False)
+
+depth_refinement_net = model.DepthRefinementNet()
+depth_refinement_net.load_state_dict(torch.load(os.path.join(args.refine_model_dir, args.resume_refine_model_name)))
+net.depth_refinement_net.load_state_dict(depth_refinement_net.state_dict())
 
 if use_cuda:
     net.cuda()

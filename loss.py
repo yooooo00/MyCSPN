@@ -27,8 +27,8 @@ class Wighted_L1_Loss(torch.nn.Module):
         _refined_sparse = refined_sparse[sparse_mask]
         _groundtruth = groundtruth[sparse_mask]
         n_valid_element = _groundtruth.size(0)
-        if n_valid_element == 0:
-            return 0
+        # if n_valid_element == 0:
+        #     return 0
         diff_mat = torch.abs(_refined_sparse - _groundtruth)
         # diff_mat = torch.abs()
         loss = torch.sum(diff_mat) / n_valid_element
