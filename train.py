@@ -164,13 +164,13 @@ if args.data_set == 'nyudepth':
 # else:
 #     print("==> input unknow dataset..")
 
-depth_refinement_net = model.DepthRefinementNet()
-depth_refinement_net.load_state_dict(torch.load(os.path.join(args.refine_model_dir, args.resume_refine_model_name)))
+# depth_refinement_net = model.DepthRefinementNet()
+# depth_refinement_net.load_state_dict(torch.load(os.path.join(args.refine_model_dir, args.resume_refine_model_name)))
 
-# 将加载好的 DepthRefinementNet 参数赋值给完整网络中的对应部分
-net.depth_refinement_net.load_state_dict(depth_refinement_net.state_dict())
-for param in net.depth_refinement_net.parameters():
-    param.requires_grad = False
+# # 将加载好的 DepthRefinementNet 参数赋值给完整网络中的对应部分
+# net.depth_refinement_net.load_state_dict(depth_refinement_net.state_dict())
+# for param in net.depth_refinement_net.parameters():
+#     param.requires_grad = False
 
 import time
 from datetime import datetime
@@ -213,8 +213,8 @@ if use_cuda:
 
 criterion = my_loss.Wighted_L1_Loss().cuda()
 optimizer = optim.SGD(
-                    filter(lambda p: p.requires_grad, net.parameters()),
-                    # net.parameters(),
+                    # filter(lambda p: p.requires_grad, net.parameters()),
+                    net.parameters(),
                       lr=args.lr,
                       momentum=args.momentum,
                       weight_decay=args.weight_decay,

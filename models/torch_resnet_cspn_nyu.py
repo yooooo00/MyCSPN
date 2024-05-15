@@ -338,14 +338,14 @@ class ResNet(nn.Module):
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
-        # self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.mid_channel = 256*block.expansion
-        # self.conv2 = nn.Conv2d(512*block.expansion, 512*block.expansion, kernel_size=3,
-        #                        stride=1, padding=1, bias=False)
-        # self.bn2 = nn.BatchNorm2d(512*block.expansion)
-        # self.up_proj_layer1 = self._make_up_conv_layer(up_proj_block,
-        #                                                self.mid_channel,
-        #                                                int(self.mid_channel/2))
+        self.conv2 = nn.Conv2d(512*block.expansion, 512*block.expansion, kernel_size=3,
+                               stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(512*block.expansion)
+        self.up_proj_layer1 = self._make_up_conv_layer(up_proj_block,
+                                                       self.mid_channel,
+                                                       int(self.mid_channel/2))
         self.up_proj_layer2 = self._make_up_conv_layer(up_proj_block,
                                                        int(self.mid_channel/2),
                                                        int(self.mid_channel/4))
@@ -397,11 +397,12 @@ class ResNet(nn.Module):
     def forward(self, x):
         # [batch_size, channel, height, width] = x.size()
         # print("Input shape:", x.size())  # 打印输入形状
-        sparse_depth = x.narrow(1,1,1).clone()
+        # sparse_depth = x.narrow(1,1,1).clone()
+        rgb_image = x.narrow(1, 0, 1).clone()
         # print("Sparse depth shape:", sparse_depth.size())  # 打印稀疏深度图形状
-        refined_sparse_depth = self.depth_refinement_net(sparse_depth)
-        sparse_mask = sparse_depth > 0.1
-        refined_sparse_depth_masked = refined_sparse_depth * sparse_mask.float()
+        # refined_sparse_depth = self.depth_refinement_net(sparse_depth)
+        # sparse_mask = sparse_depth > 0.0001
+        # refined_sparse_depth_masked = refined_sparse_depth * sparse_mask.float()
         x = self.conv1_1(x)
         skip4 = x
         # print("After conv1_1 shape:", x.size())  # 打印第一个卷积层后的形状
@@ -417,10 +418,10 @@ class ResNet(nn.Module):
         # print("After layer1 shape:", x.size())  # 打印第一层残差块后的形状
 
         x = self.layer2(x)
-        skip2 = x
+        # skip2 = x
         # print("After layer2 shape:", x.size())  # 打印第二层残差块后的形状
 
-        x = self.layer3(x)
+        # x = self.layer3(x)
         # print("After layer3 shape:", x.size()) 1024
         # x = self.layer4(x)
         # print("After layer4 shape:", x.size())
@@ -428,7 +429,7 @@ class ResNet(nn.Module):
         # print("After bn2 shape:", x.size())
         # x = self.gud_up_proj_layer1(x)
         # print("gud_up_proj_layer1 shape:", x.size()) 1024
-        x = self.gud_up_proj_layer2(x, skip2)
+        # x = self.gud_up_proj_layer2(x, skip2)
         # print("gud_up_proj_layer2 shape:", x.size())
         x = self.gud_up_proj_layer3(x, skip3)
         # print("gud_up_proj_layer3 shape:", x.size())
@@ -442,7 +443,8 @@ class ResNet(nn.Module):
 
         # x = self.post_process_layer(guidance, x, sparse_depth)
         # x = self.post_process_layer(guidance, x, refined_sparse_depth)
-        x = self.post_process_layer(guidance, x, refined_sparse_depth_masked)
+        # x = self.post_process_layer(guidance, x, refined_sparse_depth_masked)
+        x = self.post_process_layer(guidance, x, rgb_image)
         # print("after post process layer shape:", x.size())
         # exit()
         return x

@@ -117,9 +117,9 @@ if True:
     # net.load_state_dict(update_model.update_model(net, best_model_dict))
     net.load_state_dict(torch.load(best_model_path),strict=False)
 
-depth_refinement_net = model.DepthRefinementNet()
-depth_refinement_net.load_state_dict(torch.load(os.path.join(args.refine_model_dir, args.resume_refine_model_name)))
-net.depth_refinement_net.load_state_dict(depth_refinement_net.state_dict())
+# depth_refinement_net = model.DepthRefinementNet()
+# depth_refinement_net.load_state_dict(torch.load(os.path.join(args.refine_model_dir, args.resume_refine_model_name)))
+# net.depth_refinement_net.load_state_dict(depth_refinement_net.state_dict())
 
 if use_cuda:
     net.cuda()
