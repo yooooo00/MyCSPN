@@ -63,7 +63,7 @@ class Affinity_Propagate(nn.Module):
         if sparse_depth is not None:
             sparse_mask = sparse_depth.sign()
 
-        for i in range(self.prop_time):
+        for i in range(self.prop_time):# 步数由step决定 
             # one propagation
             spn_kernel = self.prop_kernel
             result_depth = self.pad_blur_depth(result_depth)
@@ -74,11 +74,17 @@ class Affinity_Propagate(nn.Module):
 
             if '8sum' in self.norm_type:
                 result_depth = (1.0 - gate_sum) * raw_depth_input + result_depth
+                # print(gate_sum.min().item())
+                # print(gate_sum.max().item())
+                
             else:
                 raise ValueError('unknown norm %s' % self.norm_type)
 
             if sparse_depth is not None:
                 result_depth = (1 - sparse_mask) * result_depth + sparse_mask * raw_depth_input
+            # result_depth=torch.clamp(result_depth, min=0, max=255)
+        # print(result_depth.min().item())
+        # print(result_depth.max().item())
 
         return result_depth
 

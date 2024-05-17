@@ -117,9 +117,9 @@ if True:
     # net.load_state_dict(update_model.update_model(net, best_model_dict))
     net.load_state_dict(torch.load(best_model_path),strict=False)
 
-# depth_refinement_net = model.DepthRefinementNet()
-# depth_refinement_net.load_state_dict(torch.load(os.path.join(args.refine_model_dir, args.resume_refine_model_name)))
-# net.depth_refinement_net.load_state_dict(depth_refinement_net.state_dict())
+depth_refinement_net = model.DepthRefinementNet()
+depth_refinement_net.load_state_dict(torch.load(os.path.join(args.refine_model_dir, args.resume_refine_model_name)))
+net.depth_refinement_net.load_state_dict(depth_refinement_net.state_dict())
 
 if use_cuda:
     net.cuda()
@@ -154,12 +154,12 @@ def val(epoch):
             inputs, targets = Variable(inputs, volatile=True), Variable(targets)
             outputs = net(inputs)
         # 修改了loss
-        sparse_depth = inputs.narrow(1,1,1).clone()
-        refined_sparse_depth = net.depth_refinement_net(sparse_depth)
-        # loss=criterion(outputs, targets)
-        loss_outputs = criterion(outputs, targets)
-        loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
-        loss= loss_outputs + loss_refined_depth
+        # sparse_depth = inputs.narrow(1,1,1).clone()
+        # refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        loss=criterion(outputs, targets)
+        # loss_outputs = criterion(outputs, targets)
+        # loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        # loss= loss_outputs + loss_refined_depth
         
         targets = targets.data.cpu()
         outputs = outputs.data.cpu()

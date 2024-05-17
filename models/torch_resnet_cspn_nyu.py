@@ -397,10 +397,17 @@ class ResNet(nn.Module):
     def forward(self, x):
         # [batch_size, channel, height, width] = x.size()
         # print("Input shape:", x.size())  # 打印输入形状
-        # sparse_depth = x.narrow(1,1,1).clone()
+        sparse_depth = x.narrow(1,1,1).clone()
+        # sparse_depth=sparse_depth*20.0
+        # print(sparse_depth.min().item())
+        # print(sparse_depth.max().item())
         rgb_image = x.narrow(1, 0, 1).clone()
+        # rgb_image2=rgb_image*255.0
         # print("Sparse depth shape:", sparse_depth.size())  # 打印稀疏深度图形状
+        # print(rgb_image.min().item())
+        # print(rgb_image.max().item())
         # refined_sparse_depth = self.depth_refinement_net(sparse_depth)
+        refined_rgb = self.depth_refinement_net(rgb_image)
         # sparse_mask = sparse_depth > 0.0001
         # refined_sparse_depth_masked = refined_sparse_depth * sparse_mask.float()
         x = self.conv1_1(x)
@@ -412,14 +419,14 @@ class ResNet(nn.Module):
         x = self.relu(x)
         # print("After relu shape:", x.size())
         x = self.maxpool(x)
-        # print("After maxpool shape:", x.size())  # 打印池化后的形状
+        # print("After maxpool shape:", x.size())  # 打印池化后的形状 torch.Size([1, 64, 57, 76])
         x = self.layer1(x)
-        skip3 = x
-        # print("After layer1 shape:", x.size())  # 打印第一层残差块后的形状
+        # skip3 = x
+        # print("After layer1 shape:", x.size())  # 打印第一层残差块后的形状 torch.Size([1, 256, 57, 76])
 
-        x = self.layer2(x)
+        # x = self.layer2(x)
         # skip2 = x
-        # print("After layer2 shape:", x.size())  # 打印第二层残差块后的形状
+        # print("After layer2 shape:", x.size())  # 打印第二层残差块后的形状 torch.Size([1, 512, 29, 38])
 
         # x = self.layer3(x)
         # print("After layer3 shape:", x.size()) 1024
@@ -430,25 +437,102 @@ class ResNet(nn.Module):
         # x = self.gud_up_proj_layer1(x)
         # print("gud_up_proj_layer1 shape:", x.size()) 1024
         # x = self.gud_up_proj_layer2(x, skip2)
-        # print("gud_up_proj_layer2 shape:", x.size())
-        x = self.gud_up_proj_layer3(x, skip3)
-        # print("gud_up_proj_layer3 shape:", x.size())
+        # print("gud_up_proj_layer2 shape:", x.size()) 512
+        # x = self.gud_up_proj_layer3(x, skip3)
+        # print("gud_up_proj_layer3 shape:", x.size()) #  torch.Size([1, 256, 57, 76])
         x = self.gud_up_proj_layer4(x, skip4)
-        # print("gud_up_proj_layer4 shape:", x.size())
+        # print("gud_up_proj_layer4 shape:", x.size()) # torch.Size([1, 64, 114, 152])
 
         guidance = self.gud_up_proj_layer6(x)
         # print("guidance shape:", guidance.size())  
-        x= self.gud_up_proj_layer5(x)
+        # print(guidance.max().item())
+        # print(guidance.min().item())
+        # x= self.gud_up_proj_layer5(x)
         # print("before post process layer shape:", x.size())
-
+        # print(x.max().item())
+        # print(x.min().item())
         # x = self.post_process_layer(guidance, x, sparse_depth)
         # x = self.post_process_layer(guidance, x, refined_sparse_depth)
         # x = self.post_process_layer(guidance, x, refined_sparse_depth_masked)
-        x = self.post_process_layer(guidance, x, rgb_image)
+        x = self.post_process_layer(guidance,refined_rgb,sparse_depth)
+        # x = self.post_process_layer(guidance, x, refined_rgb)
+        # x = self.post_process_layer(guidance, x)
         # print("after post process layer shape:", x.size())
+        # exit()
+        # x=torch.clamp(x,0,255)
+        return x
+
+class SimplifiedDepthNetwork(nn.Module):
+    def __init__(self):
+        super(SimplifiedDepthNetwork, self).__init__()
+        self.conv1_1 = nn.Conv2d(2, 32, kernel_size=3, padding=1)
+        
+        self.bn1 = nn.BatchNorm2d(32)
+        self.relu = nn.ReLU(inplace=True)
+
+        self.conv2 = nn.Conv2d(32, 16, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(16)
+
+        # 简化后仍保留的特征融合层
+        self.gud_up_proj_layer5 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 16, 1, 228, 304)
+        self.gud_up_proj_layer6 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 16, 8, 228, 304)
+
+        # CSPN部分
+        cspn_config_default = {'step': 24, 'kernel': 3, 'norm_type': '8sum'}
+        self.post_process_layer = self._make_post_process_layer(cspn_config_default)
+        # self.post_process_layer = CSPNLayer()  # 假设这是一个预定义的CSPN层
+    def _make_gud_up_conv_layer(self, block, in_channels, out_channels, height, width):
+        # 这里定义如何创建 up projection layer
+        return block(in_channels, out_channels, height, width)
+    
+    def _make_layer(self, block, planes, blocks, stride=1):
+        downsample = None
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(self.inplanes, planes * block.expansion,
+                          kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes * block.expansion),
+            )
+
+        layers = []
+        layers.append(block(self.inplanes, planes, stride, downsample))
+        self.inplanes = planes * block.expansion
+        for i in range(1, blocks):
+            layers.append(block(self.inplanes, planes))
+
+        return nn.Sequential(*layers)
+
+    def _make_up_conv_layer(self, up_proj_block, in_channels, out_channels):
+        return up_proj_block(in_channels, out_channels)
+
+    def _make_gud_up_conv_layer(self, up_proj_block, in_channels, out_channels, oheight, owidth):
+        return up_proj_block(in_channels, out_channels, oheight, owidth)
+
+    def _make_post_process_layer(self, cspn_config=None):
+        return post_process.Affinity_Propagate(cspn_config['step'],
+                                               cspn_config['kernel'],
+                                               norm_type=cspn_config['norm_type'])
+    
+    def forward(self, x):
+        # 单目深度图提取
+        rgb_image = x.narrow(1, 0, 1).clone()
+        
+        x = self.relu(self.bn1(self.conv1_1(x)))
+        x = self.relu(self.bn2(self.conv2(x)))
+        
+        # 使用 gud_up_proj_layer6 处理特征融合
+        guidance = self.gud_up_proj_layer6(x)
+        # print(guidance.size())
+        x=self.gud_up_proj_layer5(x)
+        # CSPN处理
+        x = self.post_process_layer(guidance, x, rgb_image)  # CSPN使用单目深度作为参考
+        # print(x.size())
         # exit()
         return x
 
+def mynet():
+    model=SimplifiedDepthNetwork()
+    return model
 
 def resnet18(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.

@@ -141,14 +141,15 @@ def log_file_folder_make_lr(save_dir):
     train_log_file = os.path.join(save_dir, 'log_train.csv')
     if os.path.exists(train_log_file):
         # 获取当前时间戳
-        from datetime import datetime
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        # 创建新的日志文件名，加入时间戳
-        new_log_file = os.path.join(save_dir, f'log_train_{timestamp}.csv')
-        # 重命名旧日志文件
-        os.rename(train_log_file, new_log_file)
-        print(f"Existing log train file renamed to: {new_log_file}")
-    train_fd = open(train_log_file, 'w')
+        # from datetime import datetime
+        # timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        # # 创建新的日志文件名，加入时间戳
+        # new_log_file = os.path.join(save_dir, f'log_train_{timestamp}.csv')
+        # # 重命名旧日志文件
+        # os.rename(train_log_file, new_log_file)
+        # print(f"Existing log train file renamed to: {new_log_file}")
+        train_fd=open(train_log_file,'a')
+    else:train_fd = open(train_log_file, 'w')
     train_fd.write(f'epoch,lr,bestModel,loss_num,MSE,RMSE,MAE,'
                   f'DELTA1.02,DELTA1.05,DELTA1.10,DELTA1.25,'
                   f'DELTA1.25^2,DELTA1.25^3,ABS_REL\n')
@@ -157,14 +158,15 @@ def log_file_folder_make_lr(save_dir):
     eval_log_file = os.path.join(save_dir, 'log_eval.csv')
     if os.path.exists(eval_log_file):
         # 获取当前时间戳
-        from datetime import datetime
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        # 创建新的日志文件名，加入时间戳
-        new_log_file = os.path.join(save_dir, f'log_eval_{timestamp}.csv')
-        # 重命名旧日志文件
-        os.rename(eval_log_file, new_log_file)
-        print(f"Existing log eval file renamed to: {new_log_file}")
-    eval_fd = open(eval_log_file, 'w')
+        # from datetime import datetime
+        # timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        # # 创建新的日志文件名，加入时间戳
+        # new_log_file = os.path.join(save_dir, f'log_eval_{timestamp}.csv')
+        # # 重命名旧日志文件
+        # os.rename(eval_log_file, new_log_file)
+        # print(f"Existing log eval file renamed to: {new_log_file}")
+        eval_fd=open(eval_log_file,'a')
+    else:eval_fd = open(eval_log_file, 'w')
     eval_fd.write(f'epoch,lr,bestModel,loss_num,MSE,RMSE,MAE,'
                   f'DELTA1.02,DELTA1.05,DELTA1.10,DELTA1.25,'
                   f'DELTA1.25^2,DELTA1.25^3,ABS_REL\n')
@@ -197,8 +199,9 @@ def un_normalize(tensor):
         t.mul_(s).add_(m)
     return tensor
 
-def save_eval_img(data_set, model_dir, index, input_rgbd, input_rgb, gt_depth, pred_depth,old_depth):
-    img_save_folder = os.path.join(model_dir, 'eval_result')
+def save_eval_img(data_set, model_dir, index, input_rgbd=0, input_rgb=0, gt_depth=0, pred_depth=0,old_depth=0,istraining=True):
+    if istraining==True:img_save_folder = os.path.join(model_dir, 'eval_result')
+    else: img_save_folder = os.path.join(model_dir, 'latest_epoch_result')
     if not os.path.isdir(img_save_folder):
         os.makedirs(img_save_folder, 0o777)
 
@@ -208,7 +211,7 @@ def save_eval_img(data_set, model_dir, index, input_rgbd, input_rgb, gt_depth, p
     save_name_sparse_point = os.path.join(img_save_folder, "%05d_sparse_point.png" % (index))
     save_name_sparse_mask = os.path.join(img_save_folder, "%05d_sparse_mask.png" % (index))
     save_name_old_depth=os.path.join(img_save_folder, "%05d_old_depth.png" % (index))
-    save_rgb = transforms.ToPILImage()(torch.squeeze(input_rgb, 0))
+    if input_rgb is not 0:save_rgb = transforms.ToPILImage()(torch.squeeze(input_rgb, 0))
     save_gt = None
     save_pred = None
     if data_set == 'kitti':
@@ -221,15 +224,15 @@ def save_eval_img(data_set, model_dir, index, input_rgbd, input_rgb, gt_depth, p
         plt.imsave(save_name_pred, save_pred)
 
     elif data_set == 'nyudepth':
-        save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*1.0, 0))
-        save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*1.0, 0))
+        if gt_depth is not 0:save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*1.0, 0))
+        if pred_depth is not 0:save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*1.0, 0))
         # save_gt = data_transform.ToPILImage()(torch.squeeze(gt_depth*1.0, 0))
         # save_pred = data_transform.ToPILImage()(torch.squeeze(pred_depth*1.0, 0))
-        save_depth=data_transform.ToPILImage()(torch.squeeze(old_depth*1.0, 0))
-        save_rgb.save(save_name_rgb)
-        save_gt.save(save_name_gt)
-        save_pred.save(save_name_pred)
-        save_depth.save(save_name_old_depth)
+        if old_depth is not 0: save_depth=data_transform.ToPILImage()(torch.squeeze(old_depth*1.0, 0))
+        if input_rgb is not 0:save_rgb.save(save_name_rgb)
+        if gt_depth is not 0: save_gt.save(save_name_gt)
+        if pred_depth is not 0:save_pred.save(save_name_pred)
+        if old_depth is not 0: save_depth.save(save_name_old_depth)
 
 def test_eval_error():
     gt_depth = torch.abs(torch.randn(1,3,4))

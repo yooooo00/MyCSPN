@@ -158,6 +158,7 @@ print('==> Building model..')
 if args.data_set == 'nyudepth':
     net = model.resnet18(pretrained = args.pretrain,
                          cspn_config=cspn_config)
+    # net=model.mynet()
 # elif args.data_set == 'kitti':
 #     net = model.resnet18(pretrained = args.pretrain,
 #                          cspn_config=cspn_config)
@@ -220,7 +221,10 @@ optimizer = optim.SGD(
                       weight_decay=args.weight_decay,
                       nesterov=args.nesterov,
                       dampening=args.dampening)
-# optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+# optimizer = optim.Adam(
+#     # filter(lambda p: p.requires_grad, net.parameters()),
+#     net.parameters(), 
+#     lr=args.lr, weight_decay=args.weight_decay)
 
 scheduler = lrs.ReduceLROnPlateau(optimizer, 'min') # set up scheduler
 
@@ -236,6 +240,7 @@ def train(epoch):
                        'DELTA1.25':0, 'DELTA1.25^2':0, 'DELTA1.25^3':0,}
 
     tbar = tqdm(trainloader)
+    abnormal_count=0
     for batch_idx, sample in enumerate(tbar):
         [inputs, targets] = [sample['rgbd'] , sample['depth']]
         if use_cuda:
@@ -252,12 +257,25 @@ def train(epoch):
         # loss_outputs = criterion(outputs, targets)
         # loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
         # loss_refined_depth= criterion.forward_depth(refined_rgb_image, sparse_depth, targets)
+        # loss_refined_depth= criterion(refined_rgb_image, targets)
         # loss= loss_outputs + loss_refined_depth
+        if torch.isnan(loss) or torch.isinf(loss):
+            print(f"发现异常loss, batch_idx={batch_idx}: {loss.item()}")
+            # 保存问题数据
+            # torch.save(inputs, 'inputs.pth')
+            # torch.save(targets, 'targets.pth')
+            # print('output min {}'%outputs.min().item())
+            # print('output max {}'%outputs.max().item())
+            abnormal_count+=1
+            utils.save_eval_img(args.data_set, os.path.join(args.best_model_dir,'nan'), batch_idx,
+                            0, 0, targets.data.cpu(), outputs.data.cpu(),0,istraining=False)
+            continue
+
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
-        loss_number=train_loss / (batch_idx + 1)
-        error_str = 'Epoch: %d, loss=%.4f' % (epoch, train_loss / (batch_idx + 1))
+        loss_number=train_loss / (batch_idx + 1-abnormal_count)
+        error_str = 'Epoch: %d, loss=%.4f, current=%.1f' % (epoch, loss_number,loss.item())
         tbar.set_description(error_str)
 
         targets = targets.data.cpu()
@@ -320,10 +338,13 @@ def val(epoch):
         
         # 修改后的loss
         # sparse_depth = inputs.narrow(1,1,1).clone()
+        # rgb_image = inputs.narrow(1, 0, 1).clone()
         # refined_sparse_depth = net.depth_refinement_net(sparse_depth)
+        # refined_rgb_image=net.depth_refinement_net(rgb_image)
         loss = criterion(outputs, targets)
         # loss_outputs = criterion(outputs, targets)
         # loss_refined_depth= criterion.forward_depth(refined_sparse_depth, sparse_depth, targets)
+        # loss_refined_depth= criterion(refined_rgb_image, targets)
         # loss= loss_outputs + loss_refined_depth
         targets = targets.data.cpu()
         outputs = outputs.data.cpu()
@@ -336,7 +357,8 @@ def val(epoch):
         error_result = utils.evaluate_error(gt_depth=targets, pred_depth=outputs)
         total_step_val += args.batch_size_eval
         error_avg = utils.avg_error(error_sum_val, error_result, total_step_val, args.batch_size_eval)
-
+        utils.save_eval_img(args.data_set, args.best_model_dir, batch_idx,
+                            0, 0, targets, outputs,0,istraining=False)
     utils.print_error('eval_result: step(average)',
                       epoch, batch_idx, loss,
                       error_result, error_avg, print_out=True)
@@ -359,6 +381,7 @@ def val(epoch):
         best_model_pytorch = os.path.join(args.save_dir, "best_val_%.2f.pth"%(loss_number))
         torch.save(net.state_dict(), best_model_pytorch)
 
+    
     #updata lr
     # scheduler.step(error_avg['MAE'], epoch)
     scheduler.step(loss_number, epoch)

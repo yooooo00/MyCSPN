@@ -14,12 +14,19 @@ class Wighted_L1_Loss(torch.nn.Module):
         super(Wighted_L1_Loss, self).__init__()
 
     def forward(self, pred, label):
-        label_mask = label > 0.0001
+        assert not torch.isnan(pred).any(), "Pred contains NaN" # 出现的是这个问题
+        assert not torch.isinf(pred).any(), "Pred contains inf"
+        assert not torch.isnan(label).any(), "Label contains NaN"
+        assert not torch.isinf(label).any(), "Label contains inf"
+
+        label_mask = label > 0.001
         _pred = pred[label_mask]
         _label = label[label_mask]
         n_valid_element = _label.size(0)
+        if n_valid_element == 0:return 0
         diff_mat = torch.abs(_pred-_label)
-        loss = torch.sum(diff_mat)/n_valid_element
+        # diff_mat = torch.pow(_pred - _label, 2)
+        loss = torch.sum(diff_mat)/(n_valid_element+1e-8)
         return loss
 
     def forward_depth(self, refined_sparse, sparse_depth, groundtruth):

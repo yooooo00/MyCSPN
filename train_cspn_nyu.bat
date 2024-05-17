@@ -11,15 +11,15 @@ set model=cspn_unet
 set batch_size_train=1
 set num_epoch_train=100
 set batch_size_eval=1
-set learning_rate=0.01
-set model_name=sgd0515_step24_mynet_inputrgb
-set refine_model_name=adam0513_train_refine0000
+set learning_rate=1e-2
+set model_name=sgd0517_step12_mynet_layer1_sparse_refinergb_01_test
+set refine_model_name=adam0513_train_refine
 set save_dir=output\%model_name%
 set best_model_dir=output\%model_name%
 set refine_model_dir=output\%refine_model_name%
-set resume_model_name=best_model_20240511_032454.pth
+set resume_model_name=best_train_32.70.pth
 set resume_refine_model_name=best_model.pth
-set cspn_step=24
+set cspn_step=12
 
 python train.py ^
 --data_set %data_set% ^

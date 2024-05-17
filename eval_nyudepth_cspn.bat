@@ -13,12 +13,12 @@ rem set cspn_norm_type=8sum_abs
 
 
 rem for non-positive affinity
-set best_model_dir=output\sgd0514_step24_mynet_trainrefine_full
+set best_model_dir=output\sgd0517_step12_mynet_inputrgb255_layer1_blurdepth_refinesparse_nomask
 set refine_model_name=adam0513_train_refine
 set refine_model_dir=output\%refine_model_name%
 set cspn_norm_type=8sum
-set cspn_step=24
-set resume_model_name=best_train_44.09.pth
+set cspn_step=12
+set resume_model_name=best_train_36.97.pth
 set resume_refine_model_name=best_model.pth
 
 python eval.py ^
