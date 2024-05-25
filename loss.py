@@ -26,7 +26,7 @@ class Wighted_L1_Loss(torch.nn.Module):
         if n_valid_element == 0:return 0
         diff_mat = torch.abs(_pred-_label)
         # diff_mat = torch.pow(_pred - _label, 2)
-        loss = torch.sum(diff_mat)/(n_valid_element+1e-8)
+        loss = torch.sum(diff_mat)/(n_valid_element)
         return loss
 
     def forward_depth(self, refined_sparse, sparse_depth, groundtruth):

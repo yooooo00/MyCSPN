@@ -1,8 +1,3 @@
-import torch
-import torch.nn as nn
-from PIL import Image
-import torchvision.transforms as transforms
-
 import numpy as np
 from PIL import Image
 
@@ -19,11 +14,34 @@ def calculate_mae(image1, image2):
     mae = np.mean(np.abs(valid_pixels1 - valid_pixels2))
     return mae
 
+def calculate_mse(image1, image2):
+    """Calculate the Mean Squared Error between two images."""
+    mask = image2 > 0.0001  # Create a mask for valid pixels in the second image
+    valid_pixels1 = image1[mask]
+    valid_pixels2 = image2[mask]
+    mse = np.mean((valid_pixels1 - valid_pixels2) ** 2)
+    return mse
+
+def calculate_rmse(image1, image2):
+    """Calculate the Root Mean Squared Error between two images."""
+    mse = calculate_mse(image1, image2)
+    rmse = np.sqrt(mse)
+    return rmse
+
 # Example usage
-path1 = r"D:\projects\MyCSPN\output\sgd0512_step24_FT200_normalized_resnet18_edited1024_traindepth_single\eval_result_n\00001_gt.png"
-path2 = r"D:\projects\MyCSPN\output\sgd0514_step24_mynet_pretrainedrefine\eval_result1\00001_pred.png"
+path1 = r"D:\projects\MyCSPN\output\sgd0521_lr1e-3_step6_mynet_layer2_rgb_nosparse_mae_normalize_gradclip_sparsemask_dynamicmask_refinergbedit_noinit_clamp\latest_epoch_result\00002_gt.png"
+path2 = r"D:\projects\MyCSPN\output\sgd0521_lr1e-3_step6_mynet_layer2_rgb_nosparse_mae_normalize_gradclip_sparsemask_dynamicmask_refinergbedit_noinit_clamp\latest_epoch_result\00002_pred.png"
 image1 = load_image_as_array(path1)
 image2 = load_image_as_array(path2)
+
 # Calculate MAE
 mae = calculate_mae(image1, image2)
 print("The MAE loss between the images is:", mae)
+
+# Calculate MSE
+mse = calculate_mse(image1, image2)
+print("The MSE loss between the images is:", mse)
+
+# Calculate RMSE
+rmse = calculate_rmse(image1, image2)
+print("The RMSE loss between the images is:", rmse)

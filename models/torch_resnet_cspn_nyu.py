@@ -343,19 +343,19 @@ class ResNet(nn.Module):
         self.conv2 = nn.Conv2d(512*block.expansion, 512*block.expansion, kernel_size=3,
                                stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(512*block.expansion)
-        self.up_proj_layer1 = self._make_up_conv_layer(up_proj_block,
-                                                       self.mid_channel,
-                                                       int(self.mid_channel/2))
-        self.up_proj_layer2 = self._make_up_conv_layer(up_proj_block,
-                                                       int(self.mid_channel/2),
-                                                       int(self.mid_channel/4))
-        self.up_proj_layer3 = self._make_up_conv_layer(up_proj_block,
-                                                       int(self.mid_channel/4),
-                                                       int(self.mid_channel/8))
-        self.up_proj_layer4 = self._make_up_conv_layer(up_proj_block,
-                                                       int(self.mid_channel/8),
-                                                       int(self.mid_channel/16))
-        self.conv3 = nn.Conv2d(128, 1, kernel_size=3, stride=1, padding=1, bias=False)
+        # self.up_proj_layer1 = self._make_up_conv_layer(up_proj_block,
+        #                                                self.mid_channel,
+        #                                                int(self.mid_channel/2))
+        # self.up_proj_layer2 = self._make_up_conv_layer(up_proj_block,
+        #                                                int(self.mid_channel/2),
+        #                                                int(self.mid_channel/4))
+        # self.up_proj_layer3 = self._make_up_conv_layer(up_proj_block,
+        #                                                int(self.mid_channel/4),
+        #                                                int(self.mid_channel/8))
+        # self.up_proj_layer4 = self._make_up_conv_layer(up_proj_block,
+        #                                                int(self.mid_channel/8),
+        #                                                int(self.mid_channel/16))
+        # self.conv3 = nn.Conv2d(128, 1, kernel_size=3, stride=1, padding=1, bias=False)
         self.post_process_layer = self._make_post_process_layer(cspn_config_default)
         self.gud_up_proj_layer1 = self._make_gud_up_conv_layer(Gudi_UpProj_Block, 2048, 1024, 15, 19)
         self.gud_up_proj_layer2 = self._make_gud_up_conv_layer(Gudi_UpProj_Block_Cat, 1024, 512, 29, 38)
@@ -364,6 +364,7 @@ class ResNet(nn.Module):
         self.gud_up_proj_layer5 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 64, 1, 228, 304)
         self.gud_up_proj_layer6 = self._make_gud_up_conv_layer(Simple_Gudi_UpConv_Block_Last_Layer, 64, 8, 228, 304)
         self.depth_refinement_net = DepthRefinementNet()
+        self.train_mask=nn.Sigmoid()
 
 
     def _make_layer(self, block, planes, blocks, stride=1):
@@ -398,10 +399,10 @@ class ResNet(nn.Module):
         # [batch_size, channel, height, width] = x.size()
         # print("Input shape:", x.size())  # 打印输入形状
         sparse_depth = x.narrow(1,1,1).clone()
-        # sparse_depth=sparse_depth*20.0
+        # sparse_depth=sparse_depth*255.0
         # print(sparse_depth.min().item())
         # print(sparse_depth.max().item())
-        rgb_image = x.narrow(1, 0, 1).clone()
+        rgb_image = x.narrow(1, 0, 1).clone() # 现在 范围为255
         # rgb_image2=rgb_image*255.0
         # print("Sparse depth shape:", sparse_depth.size())  # 打印稀疏深度图形状
         # print(rgb_image.min().item())
@@ -421,29 +422,31 @@ class ResNet(nn.Module):
         x = self.maxpool(x)
         # print("After maxpool shape:", x.size())  # 打印池化后的形状 torch.Size([1, 64, 57, 76])
         x = self.layer1(x)
-        # skip3 = x
+        skip3 = x
         # print("After layer1 shape:", x.size())  # 打印第一层残差块后的形状 torch.Size([1, 256, 57, 76])
 
-        # x = self.layer2(x)
-        # skip2 = x
+        x = self.layer2(x)
+        skip2 = x
         # print("After layer2 shape:", x.size())  # 打印第二层残差块后的形状 torch.Size([1, 512, 29, 38])
 
-        # x = self.layer3(x)
+        x = self.layer3(x)
         # print("After layer3 shape:", x.size()) 1024
-        # x = self.layer4(x)
+        x = self.layer4(x)
         # print("After layer4 shape:", x.size())
-        # x = self.bn2(self.conv2(x))
+        x = self.bn2(self.conv2(x))
         # print("After bn2 shape:", x.size())
-        # x = self.gud_up_proj_layer1(x)
+        x = self.gud_up_proj_layer1(x)
         # print("gud_up_proj_layer1 shape:", x.size()) 1024
-        # x = self.gud_up_proj_layer2(x, skip2)
+        x = self.gud_up_proj_layer2(x, skip2)
         # print("gud_up_proj_layer2 shape:", x.size()) 512
-        # x = self.gud_up_proj_layer3(x, skip3)
+        x = self.gud_up_proj_layer3(x, skip3)
         # print("gud_up_proj_layer3 shape:", x.size()) #  torch.Size([1, 256, 57, 76])
         x = self.gud_up_proj_layer4(x, skip4)
         # print("gud_up_proj_layer4 shape:", x.size()) # torch.Size([1, 64, 114, 152])
 
         guidance = self.gud_up_proj_layer6(x)
+        dynamic_mask=self.gud_up_proj_layer5(x)
+        dynamic_mask=self.train_mask(dynamic_mask)
         # print("guidance shape:", guidance.size())  
         # print(guidance.max().item())
         # print(guidance.min().item())
@@ -454,12 +457,16 @@ class ResNet(nn.Module):
         # x = self.post_process_layer(guidance, x, sparse_depth)
         # x = self.post_process_layer(guidance, x, refined_sparse_depth)
         # x = self.post_process_layer(guidance, x, refined_sparse_depth_masked)
-        x = self.post_process_layer(guidance,refined_rgb,sparse_depth)
+        assert not torch.isnan(x).any(), "Before cspn x contains NaN"
+        # x = self.post_process_layer(guidance,rgb_image,dynamic_mask,sparse_depth)
+        x = self.post_process_layer(guidance,refined_rgb,dynamic_mask,sparse_depth)
         # x = self.post_process_layer(guidance, x, refined_rgb)
         # x = self.post_process_layer(guidance, x)
         # print("after post process layer shape:", x.size())
         # exit()
         # x=torch.clamp(x,0,255)
+        # print(x.min().item())
+        # print(x.max().item())
         return x
 
 class SimplifiedDepthNetwork(nn.Module):

@@ -272,6 +272,7 @@ def train(epoch):
             continue
 
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(net.parameters(), max_norm=1.0) # 新增梯度裁剪
         optimizer.step()
         train_loss += loss.item()
         loss_number=train_loss / (batch_idx + 1-abnormal_count)
@@ -328,7 +329,7 @@ def val(epoch):
 
     tbar = tqdm(valloader)
     for batch_idx, sample in enumerate(tbar):
-        [inputs, targets] = [sample['rgbd'] , sample['depth']]
+        [inputs, targets,raw_rgb,old_depth] = [sample['rgbd'] , sample['depth'],sample['raw_rgb'],sample['old_depth']]
         with torch.no_grad():
             if use_cuda:
                 inputs, targets = inputs.cuda(), targets.cuda()
@@ -358,7 +359,7 @@ def val(epoch):
         total_step_val += args.batch_size_eval
         error_avg = utils.avg_error(error_sum_val, error_result, total_step_val, args.batch_size_eval)
         utils.save_eval_img(args.data_set, args.best_model_dir, batch_idx,
-                            0, 0, targets, outputs,0,istraining=False)
+                            0, raw_rgb, targets, outputs,old_depth.data.cpu(),istraining=False)
     utils.print_error('eval_result: step(average)',
                       epoch, batch_idx, loss,
                       error_result, error_avg, print_out=True)

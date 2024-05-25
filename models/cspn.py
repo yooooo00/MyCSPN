@@ -39,7 +39,7 @@ class Affinity_Propagate(nn.Module):
         self.out_feature = 1
 
 
-    def forward(self, guidance, blur_depth, sparse_depth=None):
+    def forward(self, guidance, blur_depth, dynamic_mask,sparse_depth=None):
 
         self.sum_conv = nn.Conv3d(in_channels=8,
                                   out_channels=1,
@@ -56,12 +56,15 @@ class Affinity_Propagate(nn.Module):
 
         # pad input and convert to 8 channel 3D features
         raw_depth_input = blur_depth
-
+        # print(raw_depth_input.min().item()) # 【0，255】
+        # print(raw_depth_input.max().item())
+        # return raw_depth_input
         #blur_depht_pad = nn.ZeroPad2d((1,1,1,1))
         result_depth = blur_depth
 
         if sparse_depth is not None:
-            sparse_mask = sparse_depth.sign()
+            # sparse_mask = sparse_depth.sign()
+            sparse_mask = (sparse_depth > 0.1).float()
 
         for i in range(self.prop_time):# 步数由step决定 
             # one propagation
@@ -71,21 +74,33 @@ class Affinity_Propagate(nn.Module):
             neigbor_weighted_sum = neigbor_weighted_sum.squeeze(1)
             neigbor_weighted_sum = neigbor_weighted_sum[:, :, 1:-1, 1:-1]
             result_depth = neigbor_weighted_sum
-
+            # print(f"{i}:{result_depth.min().item()}") # -255
+            # print(f"{i}:{result_depth.max().item()}") # 范围255
+            # result_depth+=256
+            # result_depth/=1
+            # result_depth=torch.clamp(result_depth, min=-256.0/self.prop_time, max=255.0/self.prop_time)
+            
             if '8sum' in self.norm_type:
                 result_depth = (1.0 - gate_sum) * raw_depth_input + result_depth
-                # print(gate_sum.min().item())
+                # result_depth = (1.0 - gate_sum/self.prop_time) * raw_depth_input + result_depth/self.prop_time
+                # result_depth = result_depth
+                # result_depth=torch.clamp(result_depth, min=-256, max=255)
+                # print(gate_sum.min().item()) # 范围[-1,1]
                 # print(gate_sum.max().item())
-                
+                # print(f"{i}:{result_depth.min().item()}") # -255 ?
+                # print(f"{i}:{result_depth.max().item()}")# 范围 255*2
             else:
                 raise ValueError('unknown norm %s' % self.norm_type)
-
+            assert not torch.isnan(result_depth).any(), "result_depth contains NaN"
             if sparse_depth is not None:
-                result_depth = (1 - sparse_mask) * result_depth + sparse_mask * raw_depth_input
-            # result_depth=torch.clamp(result_depth, min=0, max=255)
-        # print(result_depth.min().item())
-        # print(result_depth.max().item())
-
+                # result_depth = (1 - sparse_mask) * result_depth + sparse_mask * raw_depth_input
+                # result_depth = (1 - sparse_mask) * result_depth + sparse_mask * sparse_depth
+                result_depth=(1-sparse_mask) * result_depth + sparse_mask * dynamic_mask * sparse_depth+sparse_mask*(1-dynamic_mask)*result_depth
+            result_depth=torch.clamp(result_depth, min=0, max=255)
+        # print(f'result min:{result_depth.min().item()}')
+        # print(f'result max:{result_depth.max().item()}') # 会超出范围
+        # result_depth=torch.clamp(result_depth, min=0, max=255)
+        
         return result_depth
 
     def affinity_normalization(self, guidance):

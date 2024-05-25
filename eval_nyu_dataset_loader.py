@@ -145,7 +145,7 @@ class NyuDepthDataset(Dataset):
                                            transforms.CenterCrop((228, 304)),
                                            transforms.ToTensor(),
                                         #    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-                                        transforms.Normalize((0.449,), (0.226,)),
+                                        # transforms.Normalize((0.449,), (0.226,)),
                                            transforms.ToPILImage()])
 
             tDepth = data_transform.Compose([transforms.Resize(240),
@@ -166,14 +166,16 @@ class NyuDepthDataset(Dataset):
             rgb_image = tRgb(rgb_image)
             depth_image = tDepth(depth_image)
             gt_image = gttDepth(gt_image)
-            rgb_image = transforms.ToTensor()(rgb_image)
-            rgb_raw = transforms.ToTensor()(rgb_raw)
-            if self.input_format == 'img':
-                depth_image = transforms.ToTensor()(depth_image)
-                gt_image = transforms.ToTensor()(gt_image)
-            else:
-                depth_image = data_transform.ToTensor()(depth_image)
-                gt_image = data_transform.ToTensor()(gt_image)
+            # rgb_image = transforms.ToTensor()(rgb_image)
+            # rgb_raw = transforms.ToTensor()(rgb_raw)
+            rgb_image = data_transform.ToTensor()(rgb_image)
+            rgb_raw = data_transform.ToTensor()(rgb_raw)
+            # if self.input_format == 'img':
+            #     depth_image = transforms.ToTensor()(depth_image)
+            #     gt_image = transforms.ToTensor()(gt_image)
+            # else:
+            depth_image = data_transform.ToTensor()(depth_image)
+            gt_image = data_transform.ToTensor()(gt_image)
             # sparse_image = self.createSparseDepthImage(depth_image, self.n_sample)
             sparse_image=depth_image
             rgbd_image = torch.cat((rgb_image, sparse_image), 0)
