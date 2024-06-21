@@ -76,16 +76,16 @@ class NyuDepthDataset(Dataset):
         elif self.input_format == 'png':
             rgb_name = os.path.join(self.root_dir,
                     # os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_02/Depth-Anything_image_02",
-                    # os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\Depth-Anything_image_02_grey",
+                    os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\image_02\\Depth-Anything_image_02_grey",
                     # os.path.join("/media/ewing/新加卷/dataset/data/2011_10_03_drive_0027_sync/image_02/Depth-Anything_image_02",
-                                #  self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
-                    os.path.join("D:\\dataset\\data\\FallingThings\\kitchen_0_result\\left_depth_uint8",
-                                 self.rgbd_frame.iloc[idx, 0].replace('.jpg','.png')))
+                                 self.rgbd_frame.iloc[idx, 0].split('/')[-1].split('.')[0]+'_depth.png'))
+                    # os.path.join("D:\\dataset\\data\\FallingThings\\kitchen_0_result\\left_depth_uint8",
+                    #              self.rgbd_frame.iloc[idx, 0].replace('.jpg','.png')))
             # rgb_name = os.path.join(self.root_dir,
             #         os.path.join("/home/ewing/dataset/kitti_test/data/2011_10_03_drive_0027_sync/image_center/image_02",
             #                      self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             # with open(rgb_name, 'rb') as fRgb:
-            rgb_image = Image.open(rgb_name)
+            rgb_image = Image.open(rgb_name).convert('L')
             
             # depth_name = os.path.join(self.root_dir,
             #             os.path.join("/content/drive/MyDrive/Colab Notebooks/data/kitti/2011_10_03_drive_0027_sync/output_CREStereo",
@@ -94,19 +94,22 @@ class NyuDepthDataset(Dataset):
             #             os.path.join("/media/ewing/新加卷/dataset/data/2011_10_03_drive_0027_sync/output_CREStereo_full",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             depth_name = os.path.join(self.root_dir,
-                        # os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\output_CREStereo_full",
-                        os.path.join("D:\\dataset\\data\\FallingThings\\kitchen_0_result\\output_CREStereo_full_200",
+                        os.path.join("D:\\dataset\\data\\2011_10_03_drive_0027_sync\\output_CREStereo_full",
+                        # os.path.join("D:\\dataset\\data\\FallingThings\\kitchen_0_result\\output_CREStereo_full_200",
                                      self.rgbd_frame.iloc[idx, 0]))
             # with open(depth_name, 'rb') as fDepth:
-            depth_image = Image.open(depth_name)
+            depth_image = Image.open(depth_name).convert('L')
 
             # gt_name=os.path.join(self.root_dir,
             #             os.path.join("/media/ewing/新加卷/dataset/data/2011_10_03_drive_0027_sync/image_02/groundtruth_uint16_8",
             #                          self.rgbd_frame.iloc[idx, 0].split('/')[-1]))
             gt_name=os.path.join(self.root_dir,
-                        os.path.join("D:\dataset\data\FallingThings\kitchen_0_result\left_gt_reverse_4_uint8_normalized",
-                                     self.rgbd_frame.iloc[idx, 0].replace('.jpg','.depth.png')))
-            gt_image=Image.open(gt_name)
+                        os.path.join(r"D:\dataset\data\2011_10_03_drive_0027_sync\image_02\groundtruth_uint8_8",
+                                     self.rgbd_frame.iloc[idx, 0]))
+            # gt_name=os.path.join(self.root_dir,
+            #             os.path.join("D:\dataset\data\FallingThings\kitchen_0_result\left_gt_reverse_4_uint8_normalized",
+            #                          self.rgbd_frame.iloc[idx, 0].replace('.jpg','.depth.png')))
+            gt_image=Image.open(gt_name).convert('L')
             # from imagetest import imginfo
             # imginfo(depth_image)
             # imginfo(gt_image)

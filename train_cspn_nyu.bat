@@ -4,15 +4,15 @@ rem set CUDA_VISIBLE_DEVICES=0
 
 set data_set=nyudepth
 set n_sample=100
-set train_list=datalist\FallingThings_train_test.csv
-set eval_list=datalist\FallingThings_val.csv
+set train_list=datalist\png_train_test.csv
+set eval_list=datalist\png_val_test.csv
 set model=cspn_unet
 
 set batch_size_train=1
 set num_epoch_train=100
 set batch_size_eval=1
 set learning_rate=1e-3
-set model_name=sgd0521_lr1e-3_step6_mynet_layer2_rgb_nosparse_mae_normalize_gradclip_sparsemask_dynamicmask_refinergbedit_noinit_clamp
+set model_name=sgd0526_step6_kitti_uint8_refinergb_layerfull
 set refine_model_name=adam0513_train_refine
 set save_dir=output\%model_name%
 set best_model_dir=output\%model_name%
